@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>旅步甜心 v2.1</title>
+    <title>旅步甜心 v3.0</title>
     <style>
         :root {
             --bg-color: #FFF0F5;
@@ -11,7 +11,6 @@
             --primary-pink: #FFB7C5;
             --deep-pink: #FF69B4;
             --text-color: #5D4037;
-            --input-bg: #FFFBFD;
         }
 
         body {
@@ -54,85 +53,104 @@
             color: var(--text-color);
             font-size: 0.9rem;
             outline: none;
-            cursor: pointer;
-            appearance: none;
+            width: 100%;
             background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FF69B4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
             background-repeat: no-repeat;
-            background-position: right 8px center;
+            background-position: right 10px center;
             background-size: 16px;
-            padding-right: 30px;
+            appearance: none;
         }
 
         .content { padding: 20px; }
-
         .section-row { margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
         .label { font-size: 0.9rem; font-weight: bold; color: var(--deep-pink); min-width: 70px;}
 
-        /* 金額大卡片 (樣式微調，讓它看起來更像結帳總計) */
+        /* 金額卡片 */
         .amount-card {
             background: var(--bg-color);
             border-radius: 20px;
             padding: 20px;
             text-align: center;
             margin-bottom: 20px;
-            border: 2px dashed var(--deep-pink); /* 改成虛線，更有發票感 */
+            border: 2px dashed var(--deep-pink);
             box-shadow: 0 4px 10px rgba(255,182,193,0.1);
             margin-top: 10px;
         }
-        .currency-symbol { font-size: 1.5rem; color: var(--deep-pink); margin-right: 5px; }
         .currency-input {
-            width: 60%;
-            border: none;
-            background: transparent;
+            width: 60%; border: none; background: transparent;
             border-bottom: 2px solid var(--deep-pink);
-            font-size: 2rem;
-            text-align: center;
-            color: var(--deep-pink);
-            outline: none;
+            font-size: 2rem; text-align: center; color: var(--deep-pink); outline: none;
         }
 
-        .form-group { margin-bottom: 15px; }
-        .full-width-select { width: 100%; padding: 12px; font-size: 1rem; }
-        
+        /* 購物清單區塊 (核心修改區) */
         .shopping-box {
-            border: 2px dashed var(--primary-pink);
+            border: 2px solid var(--primary-pink); /* 實線強調 */
             border-radius: 15px;
-            padding: 10px;
+            padding: 15px;
             background: #FFFBFD;
             margin-bottom: 20px;
         }
-        .add-row { display: flex; gap: 5px; margin-top: 10px; }
+        
+        .add-row { 
+            display: flex; 
+            gap: 8px; 
+            margin-top: 10px; 
+            align-items: center;
+        }
+        
+        /* 相機按鈕樣式 */
+        .camera-label {
+            background: white;
+            border: 2px solid var(--deep-pink);
+            color: var(--deep-pink);
+            border-radius: 10px;
+            width: 40px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .camera-label.has-file {
+            background: var(--deep-pink);
+            color: white;
+        }
+
         .btn-mini {
             background: var(--deep-pink); color: white; border: none;
-            border-radius: 8px; padding: 0 12px; cursor: pointer;
+            border-radius: 10px; padding: 0 15px; height: 40px; cursor: pointer; font-weight: bold;
+        }
+
+        /* 列表內的縮圖樣式 */
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .item-info { display: flex; align-items: center; gap: 10px; }
+        .thumb-img {
+            width: 40px; height: 40px; 
+            object-fit: cover; 
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            background: #eee;
         }
 
         .stats-panel {
-            margin-top: 30px;
-            background: #fff;
-            border-top: 2px solid #eee;
-            padding: 20px;
+            margin-top: 30px; background: #fff; border-top: 2px solid #eee; padding: 20px;
         }
-        .stats-title { font-size: 1rem; font-weight: bold; color: var(--text-color); margin-bottom: 10px; }
         .stats-row { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 5px; color: #666; }
         .stats-total { font-weight: bold; color: var(--deep-pink); font-size: 1.1rem; border-top: 1px dashed #ccc; padding-top: 5px; margin-top: 5px; }
 
         .save-btn {
-            width: 90%;
-            position: fixed;
-            bottom: 20px;
-            left: 5%;
-            max-width: 360px;
-            background-color: var(--deep-pink);
-            color: white;
-            border: none;
-            padding: 15px;
-            border-radius: 30px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            box-shadow: 0 4px 15px rgba(255, 105, 180, 0.4);
-            cursor: pointer;
-            z-index: 100;
+            width: 90%; position: fixed; bottom: 20px; left: 5%; max-width: 360px;
+            background-color: var(--deep-pink); color: white; border: none;
+            padding: 15px; border-radius: 30px; font-size: 1.1rem; font-weight: bold;
+            box-shadow: 0 4px 15px rgba(255, 105, 180, 0.4); cursor: pointer; z-index: 100;
         }
     </style>
 </head>
@@ -141,11 +159,13 @@
     <div class="app-container">
         <div class="header">
             <div class="header-title">✈️ 旅步甜心</div>
-            <select id="countrySelect" onchange="changeCountry()" style="border:none; color: var(--deep-pink); font-weight:bold;">
-                <option value="KR">🇰🇷 韓國 (KRW)</option>
-                <option value="TH">🇹🇭 泰國 (THB)</option>
-                <option value="JP">🇯🇵 日本 (JPY)</option>
-            </select>
+            <div style="width: 120px;">
+                <select id="countrySelect" onchange="changeCountry()" style="border:none; color: var(--deep-pink); font-weight:bold; background-color: transparent;">
+                    <option value="KR">🇰🇷 韓國</option>
+                    <option value="TH">🇹🇭 泰國</option>
+                    <option value="JP">🇯🇵 日本</option>
+                </select>
+            </div>
         </div>
 
         <div class="content">
@@ -154,41 +174,48 @@
                 <input type="date" id="dateInput" style="padding:8px; border:1px solid #ccc; border-radius:10px; font-family:inherit;">
             </div>
 
-            <div class="form-group">
-                <div class="label" style="margin-bottom:5px;">📂 花費分類</div>
-                <div style="display: flex; gap: 10px;">
-                    <select id="mainCat" class="full-width-select" onchange="updateSubCats()">
+            <div class="section-row" style="align-items: flex-start;">
+                <span class="label" style="margin-top:10px;">📂 分類</span>
+                <div style="flex:1; display: flex; flex-direction: column; gap: 10px;">
+                    <select id="mainCat" onchange="updateSubCats()">
                         <option value="shopping">🛍️ 購物</option>
                         <option value="food">🍜 美食</option>
                         <option value="transport">🚌 交通</option>
                         <option value="stay">🏠 住宿</option>
                     </select>
-                    <select id="subCat" class="full-width-select">
+                    <select id="subCat">
                         </select>
                 </div>
             </div>
 
             <div class="shopping-box">
-                <div style="font-size:0.9rem; font-weight:bold; color:var(--deep-pink); margin-bottom:5px;">📸 拍照記帳 / 明細</div>
-                <ul id="itemList" style="padding-left:20px; margin:5px 0; font-size:0.9rem; color:#666;">
-                </ul>
+                <div style="font-size:0.9rem; font-weight:bold; color:var(--deep-pink); margin-bottom:5px;">📸 購物籃 & 拍照</div>
+                
+                <ul id="itemList" style="padding:0; margin:5px 0; list-style:none;">
+                    </ul>
+
                 <div class="add-row">
-                    <input type="text" id="itemName" placeholder="品名/店名" style="width:40%; padding:5px; border-radius:5px; border:1px solid #eee;">
-                    <input type="number" id="itemPrice" placeholder="金額" style="width:30%; padding:5px; border-radius:5px; border:1px solid #eee;">
-                    <button class="btn-mini" onclick="addItem()">＋加入</button>
+                    <label for="cameraInput" class="camera-label" id="cameraBtn">
+                        📷
+                    </label>
+                    <input type="file" id="cameraInput" accept="image/*" hidden onchange="previewFile()">
+
+                    <input type="text" id="itemName" placeholder="品名" style="flex:2; padding:8px; border-radius:10px; border:1px solid #eee;">
+                    <input type="number" id="itemPrice" placeholder="金額" style="flex:1; padding:8px; border-radius:10px; border:1px solid #eee;">
+                    <button class="btn-mini" onclick="addItem()">＋</button>
                 </div>
             </div>
 
-            <div class="form-group">
-                <div class="label" style="margin-bottom:5px;">💳 付款方式</div>
-                <select id="paymentMethod" class="full-width-select">
+            <div class="section-row">
+                <span class="label">💳 付款</span>
+                <select id="paymentMethod">
                     </select>
             </div>
 
-            <div class="label" style="margin-bottom:5px;">💰 最終確認金額</div>
+            <div class="label" style="margin-bottom:5px; margin-top:20px;">💰 最終確認金額</div>
             <div class="amount-card">
                 <div>
-                    <span id="curSymbol" class="currency-symbol">₩</span>
+                    <span id="curSymbol" style="font-size:1.5rem; color:var(--deep-pink); margin-right:5px;">₩</span>
                     <input type="number" id="amountInput" class="currency-input" placeholder="0" oninput="manualAmountChange()">
                 </div>
                 <div style="font-size: 0.9rem; margin-top: 5px; color: #888;">
@@ -200,8 +227,6 @@
                 <div class="stats-title">📊 1/18 今日戰績 (預覽)</div>
                 <div id="statsContent">
                     <div class="stats-row"><span>🛍️ 購物總計</span><span>NT$ 0</span></div>
-                    <div class="stats-row"><span>🍜 美食總計</span><span>NT$ 0</span></div>
-                    <div class="stats-row"><span>🚌 交通總計</span><span>NT$ 0</span></div>
                     <div class="stats-total stats-row"><span>🔥 今日總花費</span><span>NT$ 0</span></div>
                 </div>
             </div>
@@ -211,35 +236,24 @@
     </div>
 
     <script>
-        // 資料設定
         const countryConfig = {
-            'KR': { 
-                symbol: '₩', 
-                rate: 0.024, 
-                payments: ['現金', '刷卡', 'T-money', 'WOWPASS', 'Apple Pay'] 
-            },
-            'TH': { 
-                symbol: '฿', 
-                rate: 0.90, 
-                payments: ['現金', '刷卡', 'Rabbit Card', 'Line Pay', 'PromptPay'] 
-            },
-            'JP': { 
-                symbol: '¥', 
-                rate: 0.22, 
-                payments: ['現金', '刷卡', 'Suica/西瓜卡', 'PayPay', 'Apple Pay'] 
-            }
+            'KR': { symbol: '₩', rate: 0.024, payments: ['現金', '刷卡', 'T-money', 'WOWPASS'] },
+            'TH': { symbol: '฿', rate: 0.90, payments: ['現金', '刷卡', 'Rabbit Card', 'Line Pay'] },
+            'JP': { symbol: '¥', rate: 0.22, payments: ['現金', '刷卡', 'Suica', 'PayPay'] }
         };
 
+        // 更新這裡：Olive Young 改名、新增藥局
         const categories = {
-            'shopping': ['連鎖藥妝 (Olive Young)', '大創 (Daiso)', '超市/便利店', '服飾/鞋包', '免稅店', '其他購物'],
-            'food': ['餐廳', '路邊攤', '咖啡廳', '酒吧', '便利商店食品'],
+            'shopping': ['Olive Young', '藥局', '大創 (Daiso)', '超市/便利店', '服飾/鞋包', '免稅店', '其他購物'],
+            'food': ['餐廳', '路邊攤', '咖啡廳', '酒吧'],
             'transport': ['計程車', '公車', '捷運/地鐵', '機場巴士', '包車'],
-            'stay': ['飯店', '民宿', '置物櫃', '其他']
+            'stay': ['飯店', '民宿', '其他']
         };
 
         let currentCountry = 'KR';
         let currentItems = []; 
         let ledger = []; 
+        let currentImgUrl = null; // 暫存圖片
 
         window.onload = function() {
             document.getElementById('dateInput').valueAsDate = new Date();
@@ -257,26 +271,30 @@
             paySelect.innerHTML = '';
             config.payments.forEach(pay => {
                 const opt = document.createElement('option');
-                opt.value = pay;
-                opt.innerText = pay;
-                paySelect.appendChild(opt);
+                opt.value = pay; opt.innerText = pay; paySelect.appendChild(opt);
             });
-            const other = document.createElement('option');
-            other.innerText = "➕ 自訂/其他...";
-            paySelect.appendChild(other);
         }
 
         function updateSubCats() {
             const main = document.getElementById('mainCat').value;
             const sub = document.getElementById('subCat');
-            const list = categories[main];
             sub.innerHTML = ''; 
-            list.forEach(item => {
+            categories[main].forEach(item => {
                 const opt = document.createElement('option');
-                opt.value = item;
-                opt.innerText = item;
-                sub.appendChild(opt);
+                opt.value = item; opt.innerText = item; sub.appendChild(opt);
             });
+        }
+
+        // 相機預覽邏輯
+        function previewFile() {
+            const file = document.getElementById('cameraInput').files[0];
+            const btn = document.getElementById('cameraBtn');
+            if (file) {
+                // 有檔案時，按鈕變實心粉紅
+                btn.classList.add('has-file');
+                btn.innerHTML = '✅'; 
+                currentImgUrl = URL.createObjectURL(file); // 產生預覽連結
+            }
         }
 
         function addItem() {
@@ -286,12 +304,31 @@
 
             currentItems.push({name, price});
 
+            // 建立列表項目 (含圖片)
             const li = document.createElement('li');
-            li.innerText = `${name} - ${countryConfig[currentCountry].symbol}${price}`;
+            li.className = 'item-row';
+            
+            // 圖片 HTML (如果有拍照的話)
+            let imgHtml = currentImgUrl 
+                ? `<img src="${currentImgUrl}" class="thumb-img">` 
+                : `<div class="thumb-img" style="display:flex;align-items:center;justify-content:center;font-size:0.8rem">無</div>`;
+
+            li.innerHTML = `
+                <div class="item-info">
+                    ${imgHtml}
+                    <span>${name}</span>
+                </div>
+                <span>${countryConfig[currentCountry].symbol}${price}</span>
+            `;
             document.getElementById('itemList').appendChild(li);
 
+            // 清空輸入欄與相機狀態
             document.getElementById('itemName').value = '';
             document.getElementById('itemPrice').value = '';
+            document.getElementById('cameraInput').value = ''; 
+            document.getElementById('cameraBtn').classList.remove('has-file');
+            document.getElementById('cameraBtn').innerHTML = '📷';
+            currentImgUrl = null;
 
             const total = currentItems.reduce((acc, item) => acc + item.price, 0);
             document.getElementById('amountInput').value = total;
@@ -306,22 +343,19 @@
 
         function saveRecord() {
             const amount = parseFloat(document.getElementById('amountInput').value) || 0;
-            if(amount === 0) return alert("金額是 0 耶？確定嗎？");
+            if(amount === 0) return alert("還沒輸入金額喔！");
 
             const rate = countryConfig[currentCountry].rate;
             const twd = Math.round(amount * rate);
             const mainCat = document.getElementById('mainCat').value;
 
-            ledger.push({
-                type: mainCat, 
-                amountTWD: twd
-            });
+            ledger.push({ type: mainCat, amountTWD: twd });
 
             currentItems = [];
             document.getElementById('itemList').innerHTML = '';
             document.getElementById('amountInput').value = '';
             document.getElementById('twdDisplay').innerText = '0';
-            alert("✅ 記帳成功！");
+            alert("✅ 記帳成功！(含照片)");
             
             updateStats();
         }
@@ -329,12 +363,9 @@
         function updateStats() {
             let totals = { shopping: 0, food: 0, transport: 0, stay: 0, total: 0 };
             ledger.forEach(record => {
-                if(totals[record.type] !== undefined) {
-                    totals[record.type] += record.amountTWD;
-                }
+                if(totals[record.type] !== undefined) totals[record.type] += record.amountTWD;
                 totals.total += record.amountTWD;
             });
-
             const html = `
                 <div class="stats-row"><span>🛍️ 購物總計</span><span>NT$ ${totals.shopping.toLocaleString()}</span></div>
                 <div class="stats-row"><span>🍜 美食總計</span><span>NT$ ${totals.food.toLocaleString()}</span></div>
