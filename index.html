@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>旅步甜心 v6.0 (極簡實用版)</title>
+    <title>Rena旅遊隨身帳 v6.1 (版面修復版)</title>
     <style>
         :root {
-            --bg-color: #FFF0F5;
-            --card-bg: #FFFFFF;
-            --primary-pink: #FFB7C5;
-            --deep-pink: #FF69B4;
-            --text-color: #5D4037;
+            --bg-color: #FFF0F5;       /* 淺粉背景 */
+            --card-bg: #FFFFFF;        /* 白卡片 */
+            --primary-pink: #FFB7C5;   /* 主色粉 */
+            --deep-pink: #FF69B4;      /* 深粉紅 */
+            --text-color: #5D4037;     /* 巧克力色字 */
         }
 
         body {
@@ -33,6 +33,7 @@
             position: relative;
         }
 
+        /* 頂部 Header */
         .header {
             background-color: var(--primary-pink);
             padding: 15px 20px;
@@ -45,6 +46,7 @@
         }
         .header-title { font-weight: bold; font-size: 1.1rem; }
         
+        /* 下拉選單樣式 */
         select {
             padding: 8px 12px;
             border: 2px solid var(--primary-pink);
@@ -65,7 +67,7 @@
         .section-row { margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
         .label { font-size: 0.9rem; font-weight: bold; color: var(--deep-pink); min-width: 70px;}
 
-        /* 金額卡片 */
+        /* 金額大卡片 */
         .amount-card {
             background: var(--bg-color);
             border-radius: 20px;
@@ -82,7 +84,7 @@
             font-size: 2rem; text-align: center; color: var(--deep-pink); outline: none;
         }
 
-        /* 購物清單區塊 */
+        /* --- 購物清單區塊 (本次修改重點) --- */
         .shopping-box {
             border: 2px solid var(--primary-pink);
             border-radius: 15px;
@@ -90,29 +92,60 @@
             background: #FFFBFD;
             margin-bottom: 20px;
         }
-        
-        .add-row { display: flex; gap: 8px; margin-top: 10px; align-items: center; }
-        
-        /* 相機按鈕 (保留，讓你體驗選照片的流程) */
+
+        /* 將輸入區分為上下兩行，更整齊 */
+        .add-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 10px;
+            background: rgba(255, 255, 255, 0.5);
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .input-line {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+        }
+
+        /* 輸入框樣式 */
+        .styled-input {
+            flex: 1; /* 自動填滿剩餘空間 */
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-size: 0.9rem;
+            outline-color: var(--deep-pink);
+        }
+
+        /* 相機按鈕 */
         .camera-label {
             background: white; border: 2px solid var(--deep-pink); color: var(--deep-pink);
-            border-radius: 10px; width: 40px; height: 38px; display: flex; align-items: center; justify-content: center;
+            border-radius: 10px; width: 45px; height: 40px; 
+            display: flex; align-items: center; justify-content: center;
             font-size: 1.2rem; cursor: pointer; transition: 0.2s;
             flex-shrink: 0;
         }
         .camera-label.has-file { background: var(--deep-pink); color: white; }
 
-        .btn-mini {
+        /* 加入按鈕 */
+        .btn-add {
             background: var(--deep-pink); color: white; border: none;
-            border-radius: 10px; padding: 0 15px; height: 40px; cursor: pointer; font-weight: bold; flex-shrink: 0;
+            border-radius: 10px; width: 60px; height: 40px; 
+            cursor: pointer; font-weight: bold; flex-shrink: 0;
+            font-size: 1rem;
         }
 
+        /* 列表項目 */
         .item-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee; }
         .item-info { display: flex; align-items: center; gap: 10px; }
         .thumb-img {
             width: 40px; height: 40px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd; background: #eee;
         }
 
+        /* 統計面板 */
         .stats-panel { margin-top: 30px; background: #fff; border-top: 2px solid #eee; padding: 20px; }
         .stats-row { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 5px; color: #666; }
         .stats-total { font-weight: bold; color: var(--deep-pink); font-size: 1.1rem; border-top: 1px dashed #ccc; padding-top: 5px; margin-top: 5px; }
@@ -128,7 +161,6 @@
             display: block; width: 100%; text-align: center; margin-top: 20px;
             color: #999; font-size: 0.8rem; cursor: pointer; text-decoration: underline; background: none; border: none;
         }
-
     </style>
 </head>
 <body>
@@ -166,19 +198,22 @@
 
             <div class="shopping-box">
                 <div style="display:flex; justify-content:space-between;">
-                    <div style="font-size:0.9rem; font-weight:bold; color:var(--deep-pink);">📸 購物明細 (Olive Young)</div>
+                    <div style="font-size:0.9rem; font-weight:bold; color:var(--deep-pink);">📸 購物明細</div>
                 </div>
+                
                 <ul id="itemList" style="padding:0; margin:5px 0; list-style:none;"></ul>
                 
-                <div class="add-row">
-                    <label for="cameraInput" class="camera-label" id="cameraBtn">📷</label>
-                    <input type="file" id="cameraInput" accept="image/*" hidden onchange="previewFile()">
+                <div class="add-group">
+                    <div class="input-line">
+                        <label for="cameraInput" class="camera-label" id="cameraBtn">📷</label>
+                        <input type="file" id="cameraInput" accept="image/*" hidden onchange="previewFile()">
+                        <input type="text" id="itemName" placeholder="請輸入商品名稱..." class="styled-input">
+                    </div>
                     
-                    <input type="text" id="itemName" placeholder="品名" style="flex:2; padding:8px; border-radius:10px; border:1px solid #eee;">
-                    
-                    <input type="number" id="itemPrice" placeholder="金額" style="flex:1.5; padding:8px; border-radius:10px; border:1px solid #eee;">
-                    
-                    <button class="btn-mini" onclick="addItem()">＋</button>
+                    <div class="input-line">
+                        <input type="number" id="itemPrice" placeholder="輸入金額" class="styled-input">
+                        <button class="btn-add" onclick="addItem()">＋加入</button>
+                    </div>
                 </div>
             </div>
 
@@ -230,12 +265,10 @@
         let ledger = []; 
         let currentImgUrl = null; 
 
-        // 啟動時讀取資料
         window.onload = function() {
             document.getElementById('dateInput').valueAsDate = new Date();
             changeCountry(); 
             updateSubCats();
-
             const savedData = localStorage.getItem('travelCandyData');
             if (savedData) {
                 ledger = JSON.parse(savedData);
@@ -248,7 +281,7 @@
         }
 
         function clearData() {
-            if(confirm("確定要刪除所有記帳資料嗎？\n(通常是開始新的一趟旅行才按喔！)")) {
+            if(confirm("確定要刪除所有記帳資料嗎？")) {
                 localStorage.removeItem('travelCandyData');
                 ledger = [];
                 updateStats();
@@ -312,7 +345,7 @@
             `;
             document.getElementById('itemList').appendChild(li);
 
-            // 清空輸入
+            // 清空
             document.getElementById('itemName').value = '';
             document.getElementById('itemPrice').value = '';
             document.getElementById('cameraInput').value = ''; 
@@ -320,11 +353,9 @@
             document.getElementById('cameraBtn').innerHTML = '📷';
             currentImgUrl = null;
 
-            // 只有在手動輸入框是 0 的時候才覆蓋 (避免干擾)
+            // 自動填入總金額 (若尚未填寫)
             const currentTotalInput = parseFloat(document.getElementById('amountInput').value) || 0;
             const newListTotal = currentItems.reduce((acc, item) => acc + item.price, 0);
-            
-            // 如果目前列表總和 > 0，就幫忙填入
             if(newListTotal > 0) {
                  document.getElementById('amountInput').value = newListTotal;
                  manualAmountChange(); 
@@ -349,13 +380,11 @@
             ledger.push({ type: mainCat, amountTWD: twd, date: date });
             saveToPhone();
 
-            // 重置
             currentItems = [];
             document.getElementById('itemList').innerHTML = '';
             document.getElementById('amountInput').value = '';
             document.getElementById('twdDisplay').innerText = '0';
             alert("✅ 記帳成功！(已儲存)");
-            
             updateStats();
         }
 
@@ -365,7 +394,6 @@
                 if(totals[record.type] !== undefined) totals[record.type] += record.amountTWD;
                 totals.total += record.amountTWD;
             });
-
             const html = `
                 <div class="stats-row"><span>🛍️ 購物總計</span><span>NT$ ${totals.shopping.toLocaleString()}</span></div>
                 <div class="stats-row"><span>🍜 美食總計</span><span>NT$ ${totals.food.toLocaleString()}</span></div>
