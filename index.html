@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>旅步甜心 v2.0</title>
+    <title>旅步甜心 v2.1</title>
     <style>
         :root {
             --bg-color: #FFF0F5;
@@ -30,11 +30,10 @@
             background-color: var(--card-bg);
             box-shadow: 0 4px 20px rgba(255, 182, 193, 0.3);
             min-height: 100vh;
-            padding-bottom: 120px; /* 預留底部空間給按鈕 */
+            padding-bottom: 120px;
             position: relative;
         }
 
-        /* 頂部導航列 (含貨幣切換) */
         .header {
             background-color: var(--primary-pink);
             padding: 15px 20px;
@@ -47,7 +46,6 @@
         }
         .header-title { font-weight: bold; font-size: 1.1rem; }
         
-        /* 可愛下拉選單樣式 */
         select {
             padding: 8px 12px;
             border: 2px solid var(--primary-pink);
@@ -57,7 +55,7 @@
             font-size: 0.9rem;
             outline: none;
             cursor: pointer;
-            appearance: none; /* 移除預設箭頭 */
+            appearance: none;
             background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FF69B4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
             background-repeat: no-repeat;
             background-position: right 8px center;
@@ -67,19 +65,19 @@
 
         .content { padding: 20px; }
 
-        /* 日期區塊 */
         .section-row { margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
         .label { font-size: 0.9rem; font-weight: bold; color: var(--deep-pink); min-width: 70px;}
 
-        /* 金額大卡片 */
+        /* 金額大卡片 (樣式微調，讓它看起來更像結帳總計) */
         .amount-card {
             background: var(--bg-color);
             border-radius: 20px;
             padding: 20px;
             text-align: center;
             margin-bottom: 20px;
-            border: 2px solid white;
+            border: 2px dashed var(--deep-pink); /* 改成虛線，更有發票感 */
             box-shadow: 0 4px 10px rgba(255,182,193,0.1);
+            margin-top: 10px;
         }
         .currency-symbol { font-size: 1.5rem; color: var(--deep-pink); margin-right: 5px; }
         .currency-input {
@@ -93,11 +91,9 @@
             outline: none;
         }
 
-        /* 表單控制項 */
         .form-group { margin-bottom: 15px; }
         .full-width-select { width: 100%; padding: 12px; font-size: 1rem; }
         
-        /* 購物清單區塊 */
         .shopping-box {
             border: 2px dashed var(--primary-pink);
             border-radius: 15px;
@@ -111,7 +107,6 @@
             border-radius: 8px; padding: 0 12px; cursor: pointer;
         }
 
-        /* 底部統計面板 */
         .stats-panel {
             margin-top: 30px;
             background: #fff;
@@ -122,13 +117,12 @@
         .stats-row { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 5px; color: #666; }
         .stats-total { font-weight: bold; color: var(--deep-pink); font-size: 1.1rem; border-top: 1px dashed #ccc; padding-top: 5px; margin-top: 5px; }
 
-        /* 儲存按鈕 */
         .save-btn {
             width: 90%;
-            position: fixed; /* 固定在底部 */
+            position: fixed;
             bottom: 20px;
             left: 5%;
-            max-width: 360px; /* 配合 container */
+            max-width: 360px;
             background-color: var(--deep-pink);
             color: white;
             border: none;
@@ -160,16 +154,6 @@
                 <input type="date" id="dateInput" style="padding:8px; border:1px solid #ccc; border-radius:10px; font-family:inherit;">
             </div>
 
-            <div class="amount-card">
-                <div>
-                    <span id="curSymbol" class="currency-symbol">₩</span>
-                    <input type="number" id="amountInput" class="currency-input" placeholder="0" oninput="manualAmountChange()">
-                </div>
-                <div style="font-size: 0.9rem; margin-top: 5px; color: #888;">
-                    ≈ NT$ <span id="twdDisplay">0</span>
-                </div>
-            </div>
-
             <div class="form-group">
                 <div class="label" style="margin-bottom:5px;">📂 花費分類</div>
                 <div style="display: flex; gap: 10px;">
@@ -187,7 +171,7 @@
             <div class="shopping-box">
                 <div style="font-size:0.9rem; font-weight:bold; color:var(--deep-pink); margin-bottom:5px;">📸 拍照記帳 / 明細</div>
                 <ul id="itemList" style="padding-left:20px; margin:5px 0; font-size:0.9rem; color:#666;">
-                    </ul>
+                </ul>
                 <div class="add-row">
                     <input type="text" id="itemName" placeholder="品名/店名" style="width:40%; padding:5px; border-radius:5px; border:1px solid #eee;">
                     <input type="number" id="itemPrice" placeholder="金額" style="width:30%; padding:5px; border-radius:5px; border:1px solid #eee;">
@@ -201,13 +185,24 @@
                     </select>
             </div>
 
+            <div class="label" style="margin-bottom:5px;">💰 最終確認金額</div>
+            <div class="amount-card">
+                <div>
+                    <span id="curSymbol" class="currency-symbol">₩</span>
+                    <input type="number" id="amountInput" class="currency-input" placeholder="0" oninput="manualAmountChange()">
+                </div>
+                <div style="font-size: 0.9rem; margin-top: 5px; color: #888;">
+                    ≈ NT$ <span id="twdDisplay">0</span>
+                </div>
+            </div>
+
             <div class="stats-panel">
                 <div class="stats-title">📊 1/18 今日戰績 (預覽)</div>
                 <div id="statsContent">
                     <div class="stats-row"><span>🛍️ 購物總計</span><span>NT$ 0</span></div>
                     <div class="stats-row"><span>🍜 美食總計</span><span>NT$ 0</span></div>
                     <div class="stats-row"><span>🚌 交通總計</span><span>NT$ 0</span></div>
-                    <div class="stats-total stats-row"><span>🔥 總花費</span><span>NT$ 0</span></div>
+                    <div class="stats-total stats-row"><span>🔥 今日總花費</span><span>NT$ 0</span></div>
                 </div>
             </div>
         </div>
@@ -216,7 +211,7 @@
     </div>
 
     <script>
-        // --- 1. 資料設定 (含國家幣別擴充) ---
+        // 資料設定
         const countryConfig = {
             'KR': { 
                 symbol: '₩', 
@@ -242,33 +237,22 @@
             'stay': ['飯店', '民宿', '置物櫃', '其他']
         };
 
-        // 目前狀態
         let currentCountry = 'KR';
-        let currentItems = []; // 購物籃
-        let ledger = []; // 模擬資料庫，存所有記帳紀錄
+        let currentItems = []; 
+        let ledger = []; 
 
-        // --- 初始化 ---
         window.onload = function() {
             document.getElementById('dateInput').valueAsDate = new Date();
-            changeCountry(); // 初始化國家設定
-            updateSubCats(); // 初始化分類
+            changeCountry(); 
+            updateSubCats(); 
         };
 
-        // --- 2. 功能邏輯 ---
-
-        // 切換國家
         function changeCountry() {
             const val = document.getElementById('countrySelect').value;
             currentCountry = val;
             const config = countryConfig[val];
-
-            // 更新符號
             document.getElementById('curSymbol').innerText = config.symbol;
-            
-            // 更新匯率顯示 (重新計算)
             manualAmountChange();
-
-            // 更新付款方式選單
             const paySelect = document.getElementById('paymentMethod');
             paySelect.innerHTML = '';
             config.payments.forEach(pay => {
@@ -277,19 +261,16 @@
                 opt.innerText = pay;
                 paySelect.appendChild(opt);
             });
-            // 加一個通用的
             const other = document.createElement('option');
             other.innerText = "➕ 自訂/其他...";
             paySelect.appendChild(other);
         }
 
-        // 連動子分類
         function updateSubCats() {
             const main = document.getElementById('mainCat').value;
             const sub = document.getElementById('subCat');
             const list = categories[main];
-            
-            sub.innerHTML = ''; // 清空
+            sub.innerHTML = ''; 
             list.forEach(item => {
                 const opt = document.createElement('option');
                 opt.value = item;
@@ -298,7 +279,6 @@
             });
         }
 
-        // 加入購物籃項目
         function addItem() {
             const name = document.getElementById('itemName').value;
             const price = parseFloat(document.getElementById('itemPrice').value);
@@ -306,29 +286,23 @@
 
             currentItems.push({name, price});
 
-            // 更新介面
             const li = document.createElement('li');
             li.innerText = `${name} - ${countryConfig[currentCountry].symbol}${price}`;
             document.getElementById('itemList').appendChild(li);
 
-            // 清空輸入
             document.getElementById('itemName').value = '';
             document.getElementById('itemPrice').value = '';
 
-            // 自動更新總金額
             const total = currentItems.reduce((acc, item) => acc + item.price, 0);
             document.getElementById('amountInput').value = total;
-            manualAmountChange(); // 觸發換算
+            manualAmountChange(); 
         }
 
-        // 計算台幣
         function manualAmountChange() {
             const amount = parseFloat(document.getElementById('amountInput').value) || 0;
             const rate = countryConfig[currentCountry].rate;
             document.getElementById('twdDisplay').innerText = Math.round(amount * rate).toLocaleString();
         }
-
-        // --- 3. 儲存與統計 ---
 
         function saveRecord() {
             const amount = parseFloat(document.getElementById('amountInput').value) || 0;
@@ -337,30 +311,23 @@
             const rate = countryConfig[currentCountry].rate;
             const twd = Math.round(amount * rate);
             const mainCat = document.getElementById('mainCat').value;
-            const mainCatText = document.getElementById('mainCat').options[document.getElementById('mainCat').selectedIndex].text;
 
-            // 存入模擬資料庫
             ledger.push({
-                type: mainCat, // shopping, food...
+                type: mainCat, 
                 amountTWD: twd
             });
 
-            // 重置畫面 (模擬)
             currentItems = [];
             document.getElementById('itemList').innerHTML = '';
             document.getElementById('amountInput').value = '';
             document.getElementById('twdDisplay').innerText = '0';
-            alert("✅ 記帳成功！數據已更新至下方統計板");
+            alert("✅ 記帳成功！");
             
             updateStats();
         }
 
-        // 更新統計看板 (Dashboard)
         function updateStats() {
-            // 歸零
             let totals = { shopping: 0, food: 0, transport: 0, stay: 0, total: 0 };
-
-            // 重新計算
             ledger.forEach(record => {
                 if(totals[record.type] !== undefined) {
                     totals[record.type] += record.amountTWD;
@@ -368,7 +335,6 @@
                 totals.total += record.amountTWD;
             });
 
-            // 更新 HTML
             const html = `
                 <div class="stats-row"><span>🛍️ 購物總計</span><span>NT$ ${totals.shopping.toLocaleString()}</span></div>
                 <div class="stats-row"><span>🍜 美食總計</span><span>NT$ ${totals.food.toLocaleString()}</span></div>
@@ -377,7 +343,6 @@
             `;
             document.getElementById('statsContent').innerHTML = html;
         }
-
     </script>
 </body>
 </html>
