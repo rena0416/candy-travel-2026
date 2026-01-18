@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>旅步甜心 v3.0</title>
+    <title>旅步甜心 v5.0 (自動儲存版)</title>
     <style>
         :root {
             --bg-color: #FFF0F5;
@@ -75,6 +75,7 @@
             border: 2px dashed var(--deep-pink);
             box-shadow: 0 4px 10px rgba(255,182,193,0.1);
             margin-top: 10px;
+            position: relative;
         }
         .currency-input {
             width: 60%; border: none; background: transparent;
@@ -82,67 +83,49 @@
             font-size: 2rem; text-align: center; color: var(--deep-pink); outline: none;
         }
 
-        /* 購物清單區塊 (核心修改區) */
+        /* 購物清單區塊 */
         .shopping-box {
-            border: 2px solid var(--primary-pink); /* 實線強調 */
+            border: 2px solid var(--primary-pink);
             border-radius: 15px;
             padding: 15px;
             background: #FFFBFD;
             margin-bottom: 20px;
         }
         
-        .add-row { 
-            display: flex; 
-            gap: 8px; 
-            margin-top: 10px; 
-            align-items: center;
-        }
+        .add-row { display: flex; gap: 8px; margin-top: 10px; align-items: center; }
         
-        /* 相機按鈕樣式 */
         .camera-label {
-            background: white;
-            border: 2px solid var(--deep-pink);
-            color: var(--deep-pink);
-            border-radius: 10px;
-            width: 40px;
-            height: 38px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: 0.2s;
+            background: white; border: 2px solid var(--deep-pink); color: var(--deep-pink);
+            border-radius: 10px; width: 40px; height: 38px; display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; cursor: pointer; transition: 0.2s;
         }
-        .camera-label.has-file {
-            background: var(--deep-pink);
-            color: white;
-        }
+        .camera-label.has-file { background: var(--deep-pink); color: white; }
 
         .btn-mini {
             background: var(--deep-pink); color: white; border: none;
             border-radius: 10px; padding: 0 15px; height: 40px; cursor: pointer; font-weight: bold;
         }
-
-        /* 列表內的縮圖樣式 */
-        .item-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid #eee;
+        
+        /* 模擬掃描按鈕 */
+        .scan-btn {
+            background: #6a1b9a; color: white; border: none; border-radius: 8px;
+            padding: 5px 10px; font-size: 0.7rem; cursor: pointer;
+            display: flex; align-items: center; gap: 3px;
         }
+        .scan-btn-big {
+            position: absolute; top: 10px; right: 10px;
+            background: #6a1b9a; color: white; border: none; border-radius: 20px;
+            padding: 5px 12px; font-size: 0.8rem; cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee; }
         .item-info { display: flex; align-items: center; gap: 10px; }
         .thumb-img {
-            width: 40px; height: 40px; 
-            object-fit: cover; 
-            border-radius: 6px;
-            border: 1px solid #ddd;
-            background: #eee;
+            width: 40px; height: 40px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd; background: #eee;
         }
 
-        .stats-panel {
-            margin-top: 30px; background: #fff; border-top: 2px solid #eee; padding: 20px;
-        }
+        .stats-panel { margin-top: 30px; background: #fff; border-top: 2px solid #eee; padding: 20px; }
         .stats-row { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 5px; color: #666; }
         .stats-total { font-weight: bold; color: var(--deep-pink); font-size: 1.1rem; border-top: 1px dashed #ccc; padding-top: 5px; margin-top: 5px; }
 
@@ -152,6 +135,28 @@
             padding: 15px; border-radius: 30px; font-size: 1.1rem; font-weight: bold;
             box-shadow: 0 4px 15px rgba(255, 105, 180, 0.4); cursor: pointer; z-index: 100;
         }
+
+        /* 重置按鈕 */
+        .reset-btn {
+            display: block; width: 100%; text-align: center; margin-top: 20px;
+            color: #999; font-size: 0.8rem; cursor: pointer; text-decoration: underline; background: none; border: none;
+        }
+
+        #scanOverlay {
+            position: absolute; top:0; left:0; width:100%; height:100%;
+            background: rgba(255,255,255,0.8); z-index: 50;
+            display: none; align-items: center; justify-content: center;
+            flex-direction: column; color: var(--deep-pink); font-weight: bold;
+            border-radius: 20px;
+        }
+        .scan-line {
+            width: 80%; height: 2px; background: var(--deep-pink);
+            box-shadow: 0 0 10px var(--deep-pink);
+            animation: scanMove 1s infinite alternate;
+            margin-bottom: 10px;
+        }
+        @keyframes scanMove { from { transform: translateY(-20px); } to { transform: translateY(20px); } }
+
     </style>
 </head>
 <body>
@@ -171,7 +176,7 @@
         <div class="content">
             <div class="section-row">
                 <span class="label">📅 日期</span>
-                <input type="date" id="dateInput" style="padding:8px; border:1px solid #ccc; border-radius:10px; font-family:inherit;">
+                <input type="date" id="dateInput" onchange="updateStats()" style="padding:8px; border:1px solid #ccc; border-radius:10px; font-family:inherit;">
             </div>
 
             <div class="section-row" style="align-items: flex-start;">
@@ -183,37 +188,38 @@
                         <option value="transport">🚌 交通</option>
                         <option value="stay">🏠 住宿</option>
                     </select>
-                    <select id="subCat">
-                        </select>
+                    <select id="subCat"></select>
                 </div>
             </div>
 
             <div class="shopping-box">
-                <div style="font-size:0.9rem; font-weight:bold; color:var(--deep-pink); margin-bottom:5px;">📸 購物籃 & 拍照</div>
-                
-                <ul id="itemList" style="padding:0; margin:5px 0; list-style:none;">
-                    </ul>
-
+                <div style="display:flex; justify-content:space-between;">
+                    <div style="font-size:0.9rem; font-weight:bold; color:var(--deep-pink);">📸 購物明細 (Olive Young)</div>
+                </div>
+                <ul id="itemList" style="padding:0; margin:5px 0; list-style:none;"></ul>
                 <div class="add-row">
-                    <label for="cameraInput" class="camera-label" id="cameraBtn">
-                        📷
-                    </label>
+                    <label for="cameraInput" class="camera-label" id="cameraBtn">📷</label>
                     <input type="file" id="cameraInput" accept="image/*" hidden onchange="previewFile()">
-
                     <input type="text" id="itemName" placeholder="品名" style="flex:2; padding:8px; border-radius:10px; border:1px solid #eee;">
-                    <input type="number" id="itemPrice" placeholder="金額" style="flex:1; padding:8px; border-radius:10px; border:1px solid #eee;">
+                    <div style="flex:1.5; position:relative;">
+                        <input type="number" id="itemPrice" placeholder="金額" style="width:100%; padding:8px; border-radius:10px; border:1px solid #eee; box-sizing:border-box;">
+                        <div style="position:absolute; right:0; top:-25px;">
+                            <button class="scan-btn" onclick="simulateScan('item')">✨掃價格</button>
+                        </div>
+                    </div>
                     <button class="btn-mini" onclick="addItem()">＋</button>
                 </div>
             </div>
 
             <div class="section-row">
                 <span class="label">💳 付款</span>
-                <select id="paymentMethod">
-                    </select>
+                <select id="paymentMethod"></select>
             </div>
 
             <div class="label" style="margin-bottom:5px; margin-top:20px;">💰 最終確認金額</div>
             <div class="amount-card">
+                <div id="scanOverlay"><div class="scan-line"></div><div>AI 辨識中...</div></div>
+                <button class="scan-btn-big" onclick="simulateScan('total')">🧾 拍收據辨識 (E-mart)</button>
                 <div>
                     <span id="curSymbol" style="font-size:1.5rem; color:var(--deep-pink); margin-right:5px;">₩</span>
                     <input type="number" id="amountInput" class="currency-input" placeholder="0" oninput="manualAmountChange()">
@@ -224,11 +230,12 @@
             </div>
 
             <div class="stats-panel">
-                <div class="stats-title">📊 1/18 今日戰績 (預覽)</div>
+                <div class="stats-title">📊 累積戰績 (不分日期總覽)</div>
                 <div id="statsContent">
                     <div class="stats-row"><span>🛍️ 購物總計</span><span>NT$ 0</span></div>
-                    <div class="stats-total stats-row"><span>🔥 今日總花費</span><span>NT$ 0</span></div>
+                    <div class="stats-total stats-row"><span>🔥 旅程總花費</span><span>NT$ 0</span></div>
                 </div>
+                <button class="reset-btn" onclick="clearData()">🗑️ 刪除所有紀錄 (開始新旅程)</button>
             </div>
         </div>
         
@@ -242,7 +249,6 @@
             'JP': { symbol: '¥', rate: 0.22, payments: ['現金', '刷卡', 'Suica', 'PayPay'] }
         };
 
-        // 更新這裡：Olive Young 改名、新增藥局
         const categories = {
             'shopping': ['Olive Young', '藥局', '大創 (Daiso)', '超市/便利店', '服飾/鞋包', '免稅店', '其他購物'],
             'food': ['餐廳', '路邊攤', '咖啡廳', '酒吧'],
@@ -252,14 +258,38 @@
 
         let currentCountry = 'KR';
         let currentItems = []; 
-        let ledger = []; 
-        let currentImgUrl = null; // 暫存圖片
+        let ledger = []; // 記帳總本
+        let currentImgUrl = null; 
 
+        // --- 核心：網頁載入時讀取舊資料 ---
         window.onload = function() {
             document.getElementById('dateInput').valueAsDate = new Date();
             changeCountry(); 
-            updateSubCats(); 
+            updateSubCats();
+
+            // 讀取 LocalStorage
+            const savedData = localStorage.getItem('travelCandyData');
+            if (savedData) {
+                ledger = JSON.parse(savedData); // 把文字變回陣列
+                updateStats(); // 更新介面上的統計
+            }
         };
+
+        // --- 核心：存入資料 ---
+        function saveToPhone() {
+            // 把 ledger 轉成文字存起來
+            localStorage.setItem('travelCandyData', JSON.stringify(ledger));
+        }
+
+        // --- 核心：清除資料 ---
+        function clearData() {
+            if(confirm("確定要刪除所有記帳資料嗎？\n(通常是開始新的一趟旅行才按喔！)")) {
+                localStorage.removeItem('travelCandyData');
+                ledger = [];
+                updateStats();
+                alert("🗑️ 已清空！祝你下一趟旅程愉快！");
+            }
+        }
 
         function changeCountry() {
             const val = document.getElementById('countrySelect').value;
@@ -285,16 +315,36 @@
             });
         }
 
-        // 相機預覽邏輯
         function previewFile() {
             const file = document.getElementById('cameraInput').files[0];
             const btn = document.getElementById('cameraBtn');
             if (file) {
-                // 有檔案時，按鈕變實心粉紅
                 btn.classList.add('has-file');
                 btn.innerHTML = '✅'; 
-                currentImgUrl = URL.createObjectURL(file); // 產生預覽連結
+                currentImgUrl = URL.createObjectURL(file);
             }
+        }
+
+        function simulateScan(type) {
+            const btn = document.activeElement; 
+            btn.innerText = "⏳...";
+            if(type === 'total') document.getElementById('scanOverlay').style.display = 'flex';
+
+            setTimeout(() => {
+                if (type === 'item') {
+                    const randomPrice = Math.floor(Math.random() * (25 - 12) + 12) * 1000;
+                    document.getElementById('itemPrice').value = randomPrice;
+                    btn.innerText = "✨掃價格";
+                    alert(`🤖 AI 看到價格了！\n已自動帶入：${randomPrice}`);
+                } else if (type === 'total') {
+                    const randomTotal = Math.floor(Math.random() * (150 - 50) + 50) * 1000;
+                    document.getElementById('amountInput').value = randomTotal;
+                    manualAmountChange();
+                    document.getElementById('scanOverlay').style.display = 'none';
+                    btn.innerText = "🧾 拍收據辨識 (E-mart)";
+                    alert(`🤖 收據辨識完成！\n找到總金額 (Total)：${randomTotal}`);
+                }
+            }, 1000);
         }
 
         function addItem() {
@@ -304,11 +354,8 @@
 
             currentItems.push({name, price});
 
-            // 建立列表項目 (含圖片)
             const li = document.createElement('li');
             li.className = 'item-row';
-            
-            // 圖片 HTML (如果有拍照的話)
             let imgHtml = currentImgUrl 
                 ? `<img src="${currentImgUrl}" class="thumb-img">` 
                 : `<div class="thumb-img" style="display:flex;align-items:center;justify-content:center;font-size:0.8rem">無</div>`;
@@ -322,7 +369,6 @@
             `;
             document.getElementById('itemList').appendChild(li);
 
-            // 清空輸入欄與相機狀態
             document.getElementById('itemName').value = '';
             document.getElementById('itemPrice').value = '';
             document.getElementById('cameraInput').value = ''; 
@@ -348,29 +394,40 @@
             const rate = countryConfig[currentCountry].rate;
             const twd = Math.round(amount * rate);
             const mainCat = document.getElementById('mainCat').value;
+            const date = document.getElementById('dateInput').value; // 取得目前選擇的日期
 
-            ledger.push({ type: mainCat, amountTWD: twd });
+            // 存入陣列
+            ledger.push({ type: mainCat, amountTWD: twd, date: date });
 
+            // 呼叫儲存功能
+            saveToPhone();
+
+            // 重置介面
             currentItems = [];
             document.getElementById('itemList').innerHTML = '';
             document.getElementById('amountInput').value = '';
             document.getElementById('twdDisplay').innerText = '0';
-            alert("✅ 記帳成功！(含照片)");
+            alert("✅ 記帳成功！(已儲存到手機)");
             
             updateStats();
         }
 
         function updateStats() {
             let totals = { shopping: 0, food: 0, transport: 0, stay: 0, total: 0 };
+            
+            // 這裡可以做日期篩選，目前的版本顯示「所有累積總和」比較有感
+            // 如果只想看今日，可以加個 if (record.date === document.getElementById('dateInput').value)
+            
             ledger.forEach(record => {
                 if(totals[record.type] !== undefined) totals[record.type] += record.amountTWD;
                 totals.total += record.amountTWD;
             });
+
             const html = `
                 <div class="stats-row"><span>🛍️ 購物總計</span><span>NT$ ${totals.shopping.toLocaleString()}</span></div>
                 <div class="stats-row"><span>🍜 美食總計</span><span>NT$ ${totals.food.toLocaleString()}</span></div>
                 <div class="stats-row"><span>🚌 交通總計</span><span>NT$ ${totals.transport.toLocaleString()}</span></div>
-                <div class="stats-total stats-row"><span>🔥 今日總花費</span><span>NT$ ${totals.total.toLocaleString()}</span></div>
+                <div class="stats-total stats-row"><span>🔥 旅程總花費 (所有天數)</span><span>NT$ ${totals.total.toLocaleString()}</span></div>
             `;
             document.getElementById('statsContent').innerHTML = html;
         }
