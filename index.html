@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>旅步甜心 v7.0 (安心備份版)</title>
+    <title>旅步甜心 v7.1 (完美報表版)</title>
     <style>
         :root {
             --bg-color: #FFF0F5;
@@ -137,7 +137,6 @@
             color: #999; font-size: 0.8rem; cursor: pointer; text-decoration: underline; background: none; border: none;
         }
         
-        /* 匯出按鈕 */
         .export-btn {
             display: block; width: 100%; text-align: center; margin-top: 20px;
             background-color: #2ecc71; color: white; padding: 10px; border-radius: 10px;
@@ -222,8 +221,7 @@
                     <div class="stats-total stats-row"><span>🔥 旅程總花費</span><span>NT$ 0</span></div>
                 </div>
                 
-                <button class="export-btn" onclick="exportData()">📥 匯出 Excel 備份 (.csv)</button>
-                
+                <button class="export-btn" onclick="exportData()">📥 匯出 Excel (含每日小計)</button>
                 <button class="reset-btn" onclick="clearData()">🗑️ 刪除所有紀錄 (開始新旅程)</button>
             </div>
         </div>
@@ -274,23 +272,47 @@
             }
         }
 
-        // 新增：匯出功能
+        // --- 核心修改：匯出含每日小計 ---
         function exportData() {
             if(ledger.length === 0) return alert("目前還沒有資料可以匯出喔！");
 
-            // 製作 CSV 內容 (加上 BOM 讓 Excel 顯示中文正常)
-            let csvContent = "\uFEFF日期,分類,金額(NT$)\n";
-            
-            ledger.forEach(row => {
-                csvContent += `${row.date},${row.type},${row.amountTWD}\n`;
-            });
+            // 1. 先把資料按日期排序 (為了正確計算小計)
+            let sortedLedger = [...ledger].sort((a, b) => new Date(a.date) - new Date(b.date));
 
-            // 建立下載連結
+            // 2. 製作 CSV
+            let csvContent = "\uFEFF日期,分類,金額(NT$)\n";
+            let currentDay = "";
+            let dayTotal = 0;
+
+            sortedLedger.forEach((row, index) => {
+                // 如果換了一天，先把前一天的總計印出來
+                if (currentDay !== "" && row.date !== currentDay) {
+                    csvContent += `⭐️ ${currentDay} 小計,,${dayTotal}\n`;
+                    csvContent += `,,,\n`; // 空一行區隔，比較好看
+                    dayTotal = 0; // 歸零
+                }
+
+                currentDay = row.date;
+                dayTotal += row.amountTWD;
+                
+                csvContent += `${row.date},${row.type},${row.amountTWD}\n`;
+
+                // 如果是最後一筆資料，也要印出當天的總計
+                if (index === sortedLedger.length - 1) {
+                    csvContent += `⭐️ ${currentDay} 小計,,${dayTotal}\n`;
+                }
+            });
+            
+            // 最後加上旅程總花費
+            const grandTotal = sortedLedger.reduce((acc, r) => acc + r.amountTWD, 0);
+            csvContent += `\n🔥🔥 旅程總花費,,${grandTotal}\n`;
+
+            // 3. 下載
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.setAttribute("href", url);
-            link.setAttribute("download", "旅步甜心_記帳備份.csv");
+            link.setAttribute("download", "旅步甜心_完美報表.csv");
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -390,7 +412,6 @@
             document.getElementById('amountInput').value = '';
             document.getElementById('twdDisplay').innerText = '0';
             alert("✅ 記帳成功！(已儲存)");
-            
             updateStats();
         }
 
