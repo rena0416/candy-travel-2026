@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>旅步甜心 v7.1 (完美報表版)</title>
+    <title>旅步甜心 v7.2 (中文報表版)</title>
     <style>
         :root {
             --bg-color: #FFF0F5;
@@ -272,11 +272,19 @@
             }
         }
 
-        // --- 核心修改：匯出含每日小計 ---
+        // --- 核心修改：中文分類對照表 ---
         function exportData() {
             if(ledger.length === 0) return alert("目前還沒有資料可以匯出喔！");
 
-            // 1. 先把資料按日期排序 (為了正確計算小計)
+            // 定義翻譯對照
+            const typeMap = {
+                'shopping': '購物',
+                'food': '美食',
+                'transport': '交通',
+                'stay': '住宿'
+            };
+
+            // 1. 先把資料按日期排序
             let sortedLedger = [...ledger].sort((a, b) => new Date(a.date) - new Date(b.date));
 
             // 2. 製作 CSV
@@ -285,29 +293,29 @@
             let dayTotal = 0;
 
             sortedLedger.forEach((row, index) => {
-                // 如果換了一天，先把前一天的總計印出來
+                // 如果換了一天，印出小計
                 if (currentDay !== "" && row.date !== currentDay) {
                     csvContent += `⭐️ ${currentDay} 小計,,${dayTotal}\n`;
-                    csvContent += `,,,\n`; // 空一行區隔，比較好看
-                    dayTotal = 0; // 歸零
+                    csvContent += `,,,\n`; 
+                    dayTotal = 0; 
                 }
 
                 currentDay = row.date;
                 dayTotal += row.amountTWD;
                 
-                csvContent += `${row.date},${row.type},${row.amountTWD}\n`;
+                // 這裡：把英文代碼轉成中文
+                let zhType = typeMap[row.type] || row.type;
 
-                // 如果是最後一筆資料，也要印出當天的總計
+                csvContent += `${row.date},${zhType},${row.amountTWD}\n`;
+
                 if (index === sortedLedger.length - 1) {
                     csvContent += `⭐️ ${currentDay} 小計,,${dayTotal}\n`;
                 }
             });
             
-            // 最後加上旅程總花費
             const grandTotal = sortedLedger.reduce((acc, r) => acc + r.amountTWD, 0);
             csvContent += `\n🔥🔥 旅程總花費,,${grandTotal}\n`;
 
-            // 3. 下載
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
