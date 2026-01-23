@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>旅步甜心 v8.1 (匯率顯眼版)</title>
+    <title>旅步甜心 v9.0 (直覺匯率版)</title>
     <style>
         :root {
             --bg-color: #FFF0F5;
@@ -33,7 +33,6 @@
             position: relative;
         }
 
-        /* 頂部 Header */
         .header {
             background-color: var(--primary-pink);
             padding: 15px 20px;
@@ -46,7 +45,6 @@
         }
         .header-title { font-weight: bold; font-size: 1.1rem; }
         
-        /* 下拉選單 */
         select {
             padding: 8px 12px;
             border: 2px solid var(--primary-pink);
@@ -67,7 +65,6 @@
         .section-row { margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
         .label { font-size: 0.9rem; font-weight: bold; color: var(--deep-pink); min-width: 70px;}
 
-        /* --- 金額卡片 (匯率修正重點) --- */
         .amount-card {
             background: var(--bg-color);
             border-radius: 20px;
@@ -84,7 +81,7 @@
             font-size: 2rem; text-align: center; color: var(--deep-pink); outline: none;
         }
         
-        /* 醒目的匯率區塊 */
+        /* 匯率區塊樣式 (改為除號) */
         .rate-section {
             display: inline-flex;
             align-items: center;
@@ -109,7 +106,6 @@
             background: transparent;
         }
 
-        /* 購物清單 */
         .shopping-box {
             border: 2px solid var(--primary-pink);
             border-radius: 15px;
@@ -150,7 +146,6 @@
             width: 40px; height: 40px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd; background: #eee;
         }
 
-        /* 統計與按鈕 */
         .stats-panel { margin-top: 30px; background: #fff; border-top: 2px solid #eee; padding: 20px; }
         .stats-row { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 5px; color: #666; }
         .stats-total { font-weight: bold; color: var(--deep-pink); font-size: 1.1rem; border-top: 1px dashed #ccc; padding-top: 5px; margin-top: 5px; }
@@ -241,8 +236,9 @@
                 </div>
                 
                 <div class="rate-section">
-                    <span>✖️ 匯率</span>
-                    <input type="number" id="exchangeRate" class="rate-input" step="0.0001" oninput="manualAmountChange()">
+                    <span>➗ 匯率</span>
+                    <input type="number" id="exchangeRate" class="rate-input" step="0.1" oninput="manualAmountChange()">
+                    <span style="font-size:0.8rem; color:#999; margin-left:5px;">(1台幣換多少)</span>
                 </div>
 
                 <div style="font-size: 1rem; color: #5D4037; font-weight:bold;">
@@ -266,10 +262,11 @@
     </div>
 
     <script>
+        // --- 核心修正：預設匯率改為「除法」的數值 ---
         const countryConfig = {
-            'KR': { symbol: '₩', rate: 0.024, payments: ['現金', '刷卡', 'T-money', 'WOWPASS'] },
-            'TH': { symbol: '฿', rate: 0.90, payments: ['現金', '刷卡', 'Rabbit Card', 'Line Pay'] },
-            'JP': { symbol: '¥', rate: 0.22, payments: ['現金', '刷卡', 'Suica', 'PayPay'] }
+            'KR': { symbol: '₩', rate: 42.5, payments: ['現金', '刷卡', 'T-money', 'WOWPASS'] },
+            'TH': { symbol: '฿', rate: 1.10, payments: ['現金', '刷卡', 'Rabbit Card', 'Line Pay'] },
+            'JP': { symbol: '¥', rate: 4.50, payments: ['現金', '刷卡', 'Suica', 'PayPay'] }
         };
 
         const categories = {
@@ -424,18 +421,29 @@
             }
         }
 
+        // --- 核心修正：計算邏輯改為除法 ---
         function manualAmountChange() {
             const amount = parseFloat(document.getElementById('amountInput').value) || 0;
-            const rate = parseFloat(document.getElementById('exchangeRate').value) || 0;
-            document.getElementById('twdDisplay').innerText = Math.round(amount * rate).toLocaleString();
+            const rate = parseFloat(document.getElementById('exchangeRate').value);
+            
+            let twd = 0;
+            if (rate && rate !== 0) {
+                // 公式：外幣 / 匯率 = 台幣
+                twd = Math.round(amount / rate);
+            }
+            
+            document.getElementById('twdDisplay').innerText = twd.toLocaleString();
         }
 
         function saveRecord() {
             const amount = parseFloat(document.getElementById('amountInput').value) || 0;
             if(amount === 0) return alert("還沒輸入金額喔！");
 
-            const rate = parseFloat(document.getElementById('exchangeRate').value) || 0;
-            const twd = Math.round(amount * rate);
+            const rate = parseFloat(document.getElementById('exchangeRate').value);
+            let twd = 0;
+            if (rate && rate !== 0) {
+                twd = Math.round(amount / rate);
+            }
             
             const mainCat = document.getElementById('mainCat').value;
             const date = document.getElementById('dateInput').value;
