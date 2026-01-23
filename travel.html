@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>旅步甜心 v8.0 (匯率自訂版)</title>
+    <title>旅步甜心 v7.0 (安心備份版)</title>
     <style>
         :root {
             --bg-color: #FFF0F5;
@@ -65,7 +65,6 @@
         .section-row { margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
         .label { font-size: 0.9rem; font-weight: bold; color: var(--deep-pink); min-width: 70px;}
 
-        /* 金額卡片 */
         .amount-card {
             background: var(--bg-color);
             border-radius: 20px;
@@ -80,16 +79,6 @@
             width: 60%; border: none; background: transparent;
             border-bottom: 2px solid var(--deep-pink);
             font-size: 2rem; text-align: center; color: var(--deep-pink); outline: none;
-        }
-
-        /* 匯率輸入框樣式 */
-        .rate-input-group {
-            display: flex; justify-content: center; align-items: center; gap: 5px;
-            margin-top: 10px; font-size: 0.8rem; color: #888;
-        }
-        .rate-input {
-            width: 60px; border: 1px solid #ccc; border-radius: 5px; padding: 2px 5px;
-            text-align: center; color: var(--text-color);
         }
 
         .shopping-box {
@@ -148,6 +137,7 @@
             color: #999; font-size: 0.8rem; cursor: pointer; text-decoration: underline; background: none; border: none;
         }
         
+        /* 匯出按鈕 */
         .export-btn {
             display: block; width: 100%; text-align: center; margin-top: 20px;
             background-color: #2ecc71; color: white; padding: 10px; border-radius: 10px;
@@ -220,11 +210,6 @@
                     <span id="curSymbol" style="font-size:1.5rem; color:var(--deep-pink); margin-right:5px;">₩</span>
                     <input type="number" id="amountInput" class="currency-input" placeholder="0" oninput="manualAmountChange()">
                 </div>
-                
-                <div class="rate-input-group">
-                    匯率: <input type="number" id="exchangeRate" class="rate-input" step="0.0001" oninput="manualAmountChange()">
-                </div>
-
                 <div style="font-size: 0.9rem; margin-top: 5px; color: #888;">
                     ≈ NT$ <span id="twdDisplay">0</span>
                 </div>
@@ -237,7 +222,8 @@
                     <div class="stats-total stats-row"><span>🔥 旅程總花費</span><span>NT$ 0</span></div>
                 </div>
                 
-                <button class="export-btn" onclick="exportData()">📥 匯出 Excel (含每日小計)</button>
+                <button class="export-btn" onclick="exportData()">📥 匯出 Excel 備份 (.csv)</button>
+                
                 <button class="reset-btn" onclick="clearData()">🗑️ 刪除所有紀錄 (開始新旅程)</button>
             </div>
         </div>
@@ -288,41 +274,23 @@
             }
         }
 
+        // 新增：匯出功能
         function exportData() {
             if(ledger.length === 0) return alert("目前還沒有資料可以匯出喔！");
 
-            const typeMap = { 'shopping': '購物', 'food': '美食', 'transport': '交通', 'stay': '住宿' };
-            let sortedLedger = [...ledger].sort((a, b) => new Date(a.date) - new Date(b.date));
-
+            // 製作 CSV 內容 (加上 BOM 讓 Excel 顯示中文正常)
             let csvContent = "\uFEFF日期,分類,金額(NT$)\n";
-            let currentDay = "";
-            let dayTotal = 0;
-
-            sortedLedger.forEach((row, index) => {
-                if (currentDay !== "" && row.date !== currentDay) {
-                    csvContent += `⭐️ ${currentDay} 小計,,${dayTotal}\n`;
-                    csvContent += `,,,\n`; 
-                    dayTotal = 0; 
-                }
-
-                currentDay = row.date;
-                dayTotal += row.amountTWD;
-                let zhType = typeMap[row.type] || row.type;
-                csvContent += `${row.date},${zhType},${row.amountTWD}\n`;
-
-                if (index === sortedLedger.length - 1) {
-                    csvContent += `⭐️ ${currentDay} 小計,,${dayTotal}\n`;
-                }
-            });
             
-            const grandTotal = sortedLedger.reduce((acc, r) => acc + r.amountTWD, 0);
-            csvContent += `\n🔥🔥 旅程總花費,,${grandTotal}\n`;
+            ledger.forEach(row => {
+                csvContent += `${row.date},${row.type},${row.amountTWD}\n`;
+            });
 
+            // 建立下載連結
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.setAttribute("href", url);
-            link.setAttribute("download", "旅步甜心_完美報表.csv");
+            link.setAttribute("download", "旅步甜心_記帳備份.csv");
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -333,12 +301,7 @@
             currentCountry = val;
             const config = countryConfig[val];
             document.getElementById('curSymbol').innerText = config.symbol;
-            
-            // 設定匯率輸入框的值
-            document.getElementById('exchangeRate').value = config.rate;
-            
             manualAmountChange();
-            
             const paySelect = document.getElementById('paymentMethod');
             paySelect.innerHTML = '';
             config.payments.forEach(pay => {
@@ -406,10 +369,7 @@
 
         function manualAmountChange() {
             const amount = parseFloat(document.getElementById('amountInput').value) || 0;
-            
-            // 改為讀取使用者輸入的匯率
-            const rate = parseFloat(document.getElementById('exchangeRate').value) || 0;
-            
+            const rate = countryConfig[currentCountry].rate;
             document.getElementById('twdDisplay').innerText = Math.round(amount * rate).toLocaleString();
         }
 
@@ -417,10 +377,8 @@
             const amount = parseFloat(document.getElementById('amountInput').value) || 0;
             if(amount === 0) return alert("還沒輸入金額喔！");
 
-            // 儲存時，使用當下輸入框裡的匯率來計算
-            const rate = parseFloat(document.getElementById('exchangeRate').value) || 0;
+            const rate = countryConfig[currentCountry].rate;
             const twd = Math.round(amount * rate);
-            
             const mainCat = document.getElementById('mainCat').value;
             const date = document.getElementById('dateInput').value;
 
@@ -432,6 +390,7 @@
             document.getElementById('amountInput').value = '';
             document.getElementById('twdDisplay').innerText = '0';
             alert("✅ 記帳成功！(已儲存)");
+            
             updateStats();
         }
 
