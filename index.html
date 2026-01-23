@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>旅步甜心 v9.0 (直覺匯率版)</title>
+    <title>旅步甜心 v9.1 (客製化分類版)</title>
     <style>
         :root {
             --bg-color: #FFF0F5;
@@ -81,7 +81,6 @@
             font-size: 2rem; text-align: center; color: var(--deep-pink); outline: none;
         }
         
-        /* 匯率區塊樣式 (改為除號) */
         .rate-section {
             display: inline-flex;
             align-items: center;
@@ -262,7 +261,6 @@
     </div>
 
     <script>
-        // --- 核心修正：預設匯率改為「除法」的數值 ---
         const countryConfig = {
             'KR': { symbol: '₩', rate: 42.5, payments: ['現金', '刷卡', 'T-money', 'WOWPASS'] },
             'TH': { symbol: '฿', rate: 1.10, payments: ['現金', '刷卡', 'Rabbit Card', 'Line Pay'] },
@@ -271,7 +269,8 @@
 
         const categories = {
             'shopping': ['Olive Young', '藥局', '大創 (Daiso)', '超市/便利店', '服飾/鞋包', '免稅店', '其他購物'],
-            'food': ['餐廳', '路邊攤', '咖啡廳', '酒吧'],
+            // 修改重點：這裡把 '酒吧' 改成了 '傳統市場'
+            'food': ['餐廳', '路邊攤', '咖啡廳', '傳統市場'],
             'transport': ['計程車', '公車', '捷運/地鐵', '機場巴士', '包車'],
             'stay': ['飯店', '民宿', '其他']
         };
@@ -350,8 +349,6 @@
             currentCountry = val;
             const config = countryConfig[val];
             document.getElementById('curSymbol').innerText = config.symbol;
-            
-            // 每次切換國家，重設預設匯率
             document.getElementById('exchangeRate').value = config.rate;
             
             manualAmountChange();
@@ -421,14 +418,12 @@
             }
         }
 
-        // --- 核心修正：計算邏輯改為除法 ---
         function manualAmountChange() {
             const amount = parseFloat(document.getElementById('amountInput').value) || 0;
             const rate = parseFloat(document.getElementById('exchangeRate').value);
             
             let twd = 0;
             if (rate && rate !== 0) {
-                // 公式：外幣 / 匯率 = 台幣
                 twd = Math.round(amount / rate);
             }
             
