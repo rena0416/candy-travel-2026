@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>旅步甜心 v8.0 (匯率自訂版)</title>
+    <style>
+        :root {
+            --bg-color: #FFF0F5;
+            --card-bg: #FFFFFF;
+            --primary-pink: #FFB7C5;
+            --deep-pink: #FF69B4;
+            --text-color: #5D4037;
+        }
+
+        body {
+            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 400px;
+            background-color: var(--card-bg);
+            box-shadow: 0 4px 20px rgba(255, 182, 193, 0.3);
+            min-height: 100vh;
+            padding-bottom: 120px;
+            position: relative;
+        }
+
+        .header {
+            background-color: var(--primary-pink);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+        }
+        .header-title { font-weight: bold; font-size: 1.1rem; }
+        
+        select {
+            padding: 8px 12px;
+            border: 2px solid var(--primary-pink);
+            border-radius: 12px;
+            background-color: white;
+            color: var(--text-color);
+            font-size: 0.9rem;
+            outline: none;
+            width: 100%;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FF69B4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 16px;
+            appearance: none;
+        }
+
+        .content { padding: 20px; }
+        .section-row { margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        .label { font-size: 0.9rem; font-weight: bold; color: var(--deep-pink); min-width: 70px;}
+
+        /* 金額卡片 */
+        .amount-card {
+            background: var(--bg-color);
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            border: 2px dashed var(--deep-pink);
+            box-shadow: 0 4px 10px rgba(255,182,193,0.1);
+            margin-top: 10px;
+        }
+        .currency-input {
+            width: 60%; border: none; background: transparent;
+            border-bottom: 2px solid var(--deep-pink);
+            font-size: 2rem; text-align: center; color: var(--deep-pink); outline: none;
+        }
+
+        /* 匯率輸入框樣式 */
+        .rate-input-group {
+            display: flex; justify-content: center; align-items: center; gap: 5px;
+            margin-top: 10px; font-size: 0.8rem; color: #888;
+        }
+        .rate-input {
+            width: 60px; border: 1px solid #ccc; border-radius: 5px; padding: 2px 5px;
+            text-align: center; color: var(--text-color);
+        }
+
+        .shopping-box {
+            border: 2px solid var(--primary-pink);
+            border-radius: 15px;
+            padding: 15px;
+            background: #FFFBFD;
+            margin-bottom: 20px;
+        }
+
+        .add-group {
+            display: flex; flex-direction: column; gap: 10px; margin-top: 10px;
+            background: rgba(255, 255, 255, 0.5); padding: 10px; border-radius: 10px;
+        }
+
+        .input-line { display: flex; gap: 8px; width: 100%; }
+
+        .styled-input {
+            flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #ddd;
+            font-size: 0.9rem; outline-color: var(--deep-pink);
+        }
+
+        .camera-label {
+            background: white; border: 2px solid var(--deep-pink); color: var(--deep-pink);
+            border-radius: 10px; width: 45px; height: 40px; 
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; cursor: pointer; transition: 0.2s; flex-shrink: 0;
+        }
+        .camera-label.has-file { background: var(--deep-pink); color: white; }
+
+        .btn-add {
+            background: var(--deep-pink); color: white; border: none;
+            border-radius: 10px; width: 60px; height: 40px; 
+            cursor: pointer; font-weight: bold; flex-shrink: 0; font-size: 1rem;
+        }
+
+        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee; }
+        .item-info { display: flex; align-items: center; gap: 10px; }
+        .thumb-img {
+            width: 40px; height: 40px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd; background: #eee;
+        }
+
+        .stats-panel { margin-top: 30px; background: #fff; border-top: 2px solid #eee; padding: 20px; }
+        .stats-row { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 5px; color: #666; }
+        .stats-total { font-weight: bold; color: var(--deep-pink); font-size: 1.1rem; border-top: 1px dashed #ccc; padding-top: 5px; margin-top: 5px; }
+
+        .save-btn {
+            width: 90%; position: fixed; bottom: 20px; left: 5%; max-width: 360px;
+            background-color: var(--deep-pink); color: white; border: none;
+            padding: 15px; border-radius: 30px; font-size: 1.1rem; font-weight: bold;
+            box-shadow: 0 4px 15px rgba(255, 105, 180, 0.4); cursor: pointer; z-index: 100;
+        }
+
+        .reset-btn {
+            display: block; width: 100%; text-align: center; margin-top: 10px;
+            color: #999; font-size: 0.8rem; cursor: pointer; text-decoration: underline; background: none; border: none;
+        }
+        
+        .export-btn {
+            display: block; width: 100%; text-align: center; margin-top: 20px;
+            background-color: #2ecc71; color: white; padding: 10px; border-radius: 10px;
+            font-size: 0.9rem; cursor: pointer; border: none; font-weight: bold;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <div class="header">
+            <div class="header-title">✈️ 旅步甜心</div>
+            <div style="width: 120px;">
+                <select id="countrySelect" onchange="changeCountry()" style="border:none; color: var(--deep-pink); font-weight:bold; background-color: transparent;">
+                    <option value="KR">🇰🇷 韓國</option>
+                    <option value="TH">🇹🇭 泰國</option>
+                    <option value="JP">🇯🇵 日本</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="section-row">
+                <span class="label">📅 日期</span>
+                <input type="date" id="dateInput" onchange="updateStats()" style="padding:8px; border:1px solid #ccc; border-radius:10px; font-family:inherit;">
+            </div>
+
+            <div class="section-row" style="align-items: flex-start;">
+                <span class="label" style="margin-top:10px;">📂 分類</span>
+                <div style="flex:1; display: flex; flex-direction: column; gap: 10px;">
+                    <select id="mainCat" onchange="updateSubCats()">
+                        <option value="shopping">🛍️ 購物</option>
+                        <option value="food">🍜 美食</option>
+                        <option value="transport">🚌 交通</option>
+                        <option value="stay">🏠 住宿</option>
+                    </select>
+                    <select id="subCat"></select>
+                </div>
+            </div>
+
+            <div class="shopping-box">
+                <div style="display:flex; justify-content:space-between;">
+                    <div style="font-size:0.9rem; font-weight:bold; color:var(--deep-pink);">📸 購物明細</div>
+                </div>
+                
+                <ul id="itemList" style="padding:0; margin:5px 0; list-style:none;"></ul>
+                
+                <div class="add-group">
+                    <div class="input-line">
+                        <label for="cameraInput" class="camera-label" id="cameraBtn">📷</label>
+                        <input type="file" id="cameraInput" accept="image/*" hidden onchange="previewFile()">
+                        <input type="text" id="itemName" placeholder="請輸入商品名稱..." class="styled-input">
+                    </div>
+                    <div class="input-line">
+                        <input type="number" id="itemPrice" placeholder="輸入金額" class="styled-input">
+                        <button class="btn-add" onclick="addItem()">＋加入</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-row">
+                <span class="label">💳 付款</span>
+                <select id="paymentMethod"></select>
+            </div>
+
+            <div class="label" style="margin-bottom:5px; margin-top:20px;">💰 最終確認金額</div>
+            <div class="amount-card">
+                <div>
+                    <span id="curSymbol" style="font-size:1.5rem; color:var(--deep-pink); margin-right:5px;">₩</span>
+                    <input type="number" id="amountInput" class="currency-input" placeholder="0" oninput="manualAmountChange()">
+                </div>
+                
+                <div class="rate-input-group">
+                    匯率: <input type="number" id="exchangeRate" class="rate-input" step="0.0001" oninput="manualAmountChange()">
+                </div>
+
+                <div style="font-size: 0.9rem; margin-top: 5px; color: #888;">
+                    ≈ NT$ <span id="twdDisplay">0</span>
+                </div>
+            </div>
+
+            <div class="stats-panel">
+                <div class="stats-title">📊 累積戰績 (不分日期總覽)</div>
+                <div id="statsContent">
+                    <div class="stats-row"><span>🛍️ 購物總計</span><span>NT$ 0</span></div>
+                    <div class="stats-total stats-row"><span>🔥 旅程總花費</span><span>NT$ 0</span></div>
+                </div>
+                
+                <button class="export-btn" onclick="exportData()">📥 匯出 Excel (含每日小計)</button>
+                <button class="reset-btn" onclick="clearData()">🗑️ 刪除所有紀錄 (開始新旅程)</button>
+            </div>
+        </div>
+        
+        <button class="save-btn" onclick="saveRecord()">✨ 存入這筆花費</button>
+    </div>
+
+    <script>
+        const countryConfig = {
+            'KR': { symbol: '₩', rate: 0.024, payments: ['現金', '刷卡', 'T-money', 'WOWPASS'] },
+            'TH': { symbol: '฿', rate: 0.90, payments: ['現金', '刷卡', 'Rabbit Card', 'Line Pay'] },
+            'JP': { symbol: '¥', rate: 0.22, payments: ['現金', '刷卡', 'Suica', 'PayPay'] }
+        };
+
+        const categories = {
+            'shopping': ['Olive Young', '藥局', '大創 (Daiso)', '超市/便利店', '服飾/鞋包', '免稅店', '其他購物'],
+            'food': ['餐廳', '路邊攤', '咖啡廳', '酒吧'],
+            'transport': ['計程車', '公車', '捷運/地鐵', '機場巴士', '包車'],
+            'stay': ['飯店', '民宿', '其他']
+        };
+
+        let currentCountry = 'KR';
+        let currentItems = []; 
+        let ledger = []; 
+        let currentImgUrl = null; 
+
+        window.onload = function() {
+            document.getElementById('dateInput').valueAsDate = new Date();
+            changeCountry(); 
+            updateSubCats();
+            const savedData = localStorage.getItem('travelCandyData');
+            if (savedData) {
+                ledger = JSON.parse(savedData);
+                updateStats();
+            }
+        };
+
+        function saveToPhone() {
+            localStorage.setItem('travelCandyData', JSON.stringify(ledger));
+        }
+
+        function clearData() {
+            if(confirm("確定要刪除所有記帳資料嗎？\n(操作無法復原，建議先匯出備份喔！)")) {
+                localStorage.removeItem('travelCandyData');
+                ledger = [];
+                updateStats();
+                alert("🗑️ 已清空！祝你下一趟旅程愉快！");
+            }
+        }
+
+        function exportData() {
+            if(ledger.length === 0) return alert("目前還沒有資料可以匯出喔！");
+
+            const typeMap = { 'shopping': '購物', 'food': '美食', 'transport': '交通', 'stay': '住宿' };
+            let sortedLedger = [...ledger].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            let csvContent = "\uFEFF日期,分類,金額(NT$)\n";
+            let currentDay = "";
+            let dayTotal = 0;
+
+            sortedLedger.forEach((row, index) => {
+                if (currentDay !== "" && row.date !== currentDay) {
+                    csvContent += `⭐️ ${currentDay} 小計,,${dayTotal}\n`;
+                    csvContent += `,,,\n`; 
+                    dayTotal = 0; 
+                }
+
+                currentDay = row.date;
+                dayTotal += row.amountTWD;
+                let zhType = typeMap[row.type] || row.type;
+                csvContent += `${row.date},${zhType},${row.amountTWD}\n`;
+
+                if (index === sortedLedger.length - 1) {
+                    csvContent += `⭐️ ${currentDay} 小計,,${dayTotal}\n`;
+                }
+            });
+            
+            const grandTotal = sortedLedger.reduce((acc, r) => acc + r.amountTWD, 0);
+            csvContent += `\n🔥🔥 旅程總花費,,${grandTotal}\n`;
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", "旅步甜心_完美報表.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function changeCountry() {
+            const val = document.getElementById('countrySelect').value;
+            currentCountry = val;
+            const config = countryConfig[val];
+            document.getElementById('curSymbol').innerText = config.symbol;
+            
+            // 設定匯率輸入框的值
+            document.getElementById('exchangeRate').value = config.rate;
+            
+            manualAmountChange();
+            
+            const paySelect = document.getElementById('paymentMethod');
+            paySelect.innerHTML = '';
+            config.payments.forEach(pay => {
+                const opt = document.createElement('option');
+                opt.value = pay; opt.innerText = pay; paySelect.appendChild(opt);
+            });
+        }
+
+        function updateSubCats() {
+            const main = document.getElementById('mainCat').value;
+            const sub = document.getElementById('subCat');
+            sub.innerHTML = ''; 
+            categories[main].forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item; opt.innerText = item; sub.appendChild(opt);
+            });
+        }
+
+        function previewFile() {
+            const file = document.getElementById('cameraInput').files[0];
+            const btn = document.getElementById('cameraBtn');
+            if (file) {
+                btn.classList.add('has-file');
+                btn.innerHTML = '✅'; 
+                currentImgUrl = URL.createObjectURL(file);
+            }
+        }
+
+        function addItem() {
+            const name = document.getElementById('itemName').value;
+            const price = parseFloat(document.getElementById('itemPrice').value);
+            if(!name || !price) return alert("請輸入名稱與金額");
+
+            currentItems.push({name, price});
+
+            const li = document.createElement('li');
+            li.className = 'item-row';
+            let imgHtml = currentImgUrl 
+                ? `<img src="${currentImgUrl}" class="thumb-img">` 
+                : `<div class="thumb-img" style="display:flex;align-items:center;justify-content:center;font-size:0.8rem">無</div>`;
+
+            li.innerHTML = `
+                <div class="item-info">
+                    ${imgHtml}
+                    <span>${name}</span>
+                </div>
+                <span>${countryConfig[currentCountry].symbol}${price}</span>
+            `;
+            document.getElementById('itemList').appendChild(li);
+
+            document.getElementById('itemName').value = '';
+            document.getElementById('itemPrice').value = '';
+            document.getElementById('cameraInput').value = ''; 
+            document.getElementById('cameraBtn').classList.remove('has-file');
+            document.getElementById('cameraBtn').innerHTML = '📷';
+            currentImgUrl = null;
+
+            const currentTotalInput = parseFloat(document.getElementById('amountInput').value) || 0;
+            const newListTotal = currentItems.reduce((acc, item) => acc + item.price, 0);
+            if(newListTotal > 0) {
+                 document.getElementById('amountInput').value = newListTotal;
+                 manualAmountChange(); 
+            }
+        }
+
+        function manualAmountChange() {
+            const amount = parseFloat(document.getElementById('amountInput').value) || 0;
+            
+            // 改為讀取使用者輸入的匯率
+            const rate = parseFloat(document.getElementById('exchangeRate').value) || 0;
+            
+            document.getElementById('twdDisplay').innerText = Math.round(amount * rate).toLocaleString();
+        }
+
+        function saveRecord() {
+            const amount = parseFloat(document.getElementById('amountInput').value) || 0;
+            if(amount === 0) return alert("還沒輸入金額喔！");
+
+            // 儲存時，使用當下輸入框裡的匯率來計算
+            const rate = parseFloat(document.getElementById('exchangeRate').value) || 0;
+            const twd = Math.round(amount * rate);
+            
+            const mainCat = document.getElementById('mainCat').value;
+            const date = document.getElementById('dateInput').value;
+
+            ledger.push({ type: mainCat, amountTWD: twd, date: date });
+            saveToPhone();
+
+            currentItems = [];
+            document.getElementById('itemList').innerHTML = '';
+            document.getElementById('amountInput').value = '';
+            document.getElementById('twdDisplay').innerText = '0';
+            alert("✅ 記帳成功！(已儲存)");
+            updateStats();
+        }
+
+        function updateStats() {
+            let totals = { shopping: 0, food: 0, transport: 0, stay: 0, total: 0 };
+            ledger.forEach(record => {
+                if(totals[record.type] !== undefined) totals[record.type] += record.amountTWD;
+                totals.total += record.amountTWD;
+            });
+            const html = `
+                <div class="stats-row"><span>🛍️ 購物總計</span><span>NT$ ${totals.shopping.toLocaleString()}</span></div>
+                <div class="stats-row"><span>🍜 美食總計</span><span>NT$ ${totals.food.toLocaleString()}</span></div>
+                <div class="stats-row"><span>🚌 交通總計</span><span>NT$ ${totals.transport.toLocaleString()}</span></div>
+                <div class="stats-total stats-row"><span>🔥 旅程總花費</span><span>NT$ ${totals.total.toLocaleString()}</span></div>
+            `;
+            document.getElementById('statsContent').innerHTML = html;
+        }
+    </script>
+</body>
+</html>
