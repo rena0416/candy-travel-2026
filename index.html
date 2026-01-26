@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>旅步甜心 v15.1 (垂直排版版)</title>
+    <title>旅步甜心 v15.2 (最新置頂版)</title>
     <style>
         :root {
             --bg-color: #FFF0F5;
@@ -113,7 +113,7 @@
             margin-bottom: 20px;
         }
 
-        /* --- 修正：完全垂直排列，保證不跑版 --- */
+        /* 輸入區塊 (垂直堆疊) */
         .add-group {
             display: flex; flex-direction: column; gap: 12px; margin-top: 10px;
             background: rgba(255, 255, 255, 0.5); padding: 15px; border-radius: 10px;
@@ -122,11 +122,11 @@
 
         .styled-input {
             width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd;
-            font-size: 1rem; outline-color: var(--deep-pink); box-sizing: border-box; /* 確保寬度包含框線 */
+            font-size: 1rem; outline-color: var(--deep-pink); box-sizing: border-box;
         }
 
         .btn-add {
-            width: 100%; /* 按鈕佔滿整行 */
+            width: 100%;
             background: var(--deep-pink); color: white; border: none;
             border-radius: 10px; height: 45px; 
             cursor: pointer; font-weight: bold; font-size: 1.1rem;
@@ -141,7 +141,7 @@
         .item-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
         .item-info { display: flex; align-items: center; gap: 10px; font-weight: bold; color: #555; }
 
-        .stats-panel { margin-top: 30px; background: #fff; border-top: 2px solid #eee; padding: 20px; }
+        .stats-panel { margin-top: 30px; background: #fff; border-top: 2px solid #eee; padding: 20px; padding-bottom: 100px; /* 增加底部空間防止被按鈕擋住 */ }
         .stats-row { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 5px; color: #666; }
         .stats-total { font-weight: bold; color: var(--deep-pink); font-size: 1.1rem; border-top: 1px dashed #ccc; padding-top: 5px; margin-top: 5px; }
 
@@ -153,7 +153,7 @@
         }
 
         .reset-btn {
-            display: block; width: 100%; text-align: center; margin-top: 10px;
+            display: block; width: 100%; text-align: center; margin-top: 20px;
             color: #999; font-size: 0.8rem; cursor: pointer; text-decoration: underline; background: none; border: none;
         }
         
@@ -328,11 +328,19 @@
             }
             
             const typeMap = { 'shopping': '購物', 'food': '美食', 'transport': '交通', 'stay': '住宿' };
-            let sortedLedger = [...ledger].sort((a, b) => new Date(b.date) - new Date(a.date)); 
+            
+            // --- 修正排序：日期新->舊。如果日期一樣，後加入的(Index大)在上面 ---
+            // 這樣剛存進去的就會在最上面！
+            let sortedLedger = ledger.map((item, index) => ({...item, originalIndex: index}))
+                                     .sort((a, b) => {
+                                         const dateDiff = new Date(b.date) - new Date(a.date);
+                                         if (dateDiff !== 0) return dateDiff;
+                                         return b.originalIndex - a.originalIndex; // Index 大的排前面
+                                     });
 
             let html = "";
-            sortedLedger.forEach((row, index) => {
-                let originalIndex = ledger.indexOf(row);
+            sortedLedger.forEach((row) => {
+                let originalIndex = row.originalIndex;
                 let zhType = typeMap[row.type] || row.type;
                 
                 let isLegacy = (row.amountForeign === undefined || row.amountForeign === null);
@@ -504,7 +512,6 @@
         }
 
         function saveRecord() {
-            // 防呆：如果輸入框有字，但忘了按加入
             const tempName = document.getElementById('itemName').value;
             const tempPrice = document.getElementById('itemPrice').value;
             if(tempName !== "" || tempPrice !== "") {
@@ -513,7 +520,6 @@
 
             const amountForeign = parseFloat(document.getElementById('amountInput').value) || 0;
             
-            // 防呆：禁止 0 元存檔
             if(amountForeign === 0) {
                 return alert("⚠️ 金額是 0 耶？\n\n請至少加入一樣商品！");
             }
