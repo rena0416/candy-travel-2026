@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>旅步甜心 v12.0 (帳本檢視版)</title>
+    <title>旅步甜心 v13.0 (雙幣顯示版)</title>
     <style>
         :root {
             --bg-color: #FFF0F5;
@@ -179,7 +179,6 @@
             font-size: 0.9rem; cursor: pointer; border: none; font-weight: bold;
         }
 
-        /* --- 歷史帳本樣式 --- */
         .history-btn {
             display: block; width: 100%; text-align: center; margin-top: 20px;
             background-color: #9b59b6; color: white; padding: 10px; border-radius: 10px;
@@ -193,7 +192,9 @@
             display: flex; justify-content: space-between; align-items: center;
         }
         .history-info { color: #666; font-size: 0.8rem; margin-top: 3px;}
-        .history-amount { color: var(--deep-pink); font-weight: bold; }
+        .history-amount-block { text-align: right; }
+        .history-foreign { color: #999; font-size: 0.8rem; }
+        .history-twd { color: var(--deep-pink); font-weight: bold; }
         .btn-del-record { 
             background: #eee; border:none; color: #666; border-radius: 5px; 
             padding: 3px 8px; font-size: 0.7rem; margin-left: 10px; cursor: pointer;
@@ -338,20 +339,19 @@
             if (savedData) {
                 ledger = JSON.parse(savedData);
                 updateStats();
-                renderHistoryList(); // 載入時準備好列表
+                renderHistoryList(); 
             }
         };
 
         function saveToPhone() {
             try {
                 localStorage.setItem('travelCandyData', JSON.stringify(ledger));
-                renderHistoryList(); // 儲存後更新列表
+                renderHistoryList(); 
             } catch (e) {
                 alert("⚠️ 儲存空間已滿！請產出 PDF 備份後，清除舊資料。");
             }
         }
 
-        // --- 歷史列表功能 ---
         function toggleHistory() {
             const div = document.getElementById('historyContainer');
             if(div.style.display === 'block') {
@@ -362,6 +362,7 @@
             }
         }
 
+        // --- 核心更新：歷史列表顯示原幣 ---
         function renderHistoryList() {
             const container = document.getElementById('historyContainer');
             if(ledger.length === 0) {
@@ -370,17 +371,18 @@
             }
             
             const typeMap = { 'shopping': '購物', 'food': '美食', 'transport': '交通', 'stay': '住宿' };
-            let sortedLedger = [...ledger].sort((a, b) => new Date(b.date) - new Date(a.date)); // 倒序，新的在上面
+            let sortedLedger = [...ledger].sort((a, b) => new Date(b.date) - new Date(a.date)); 
 
             let html = "";
             sortedLedger.forEach((row, index) => {
-                // 找出原始 index 以便刪除
                 let originalIndex = ledger.indexOf(row);
                 let zhType = typeMap[row.type] || row.type;
-                
-                // 檢查是否為舊資料
                 let desc = row.items && row.items.length > 0 ? `(有 ${row.items.length} 樣明細)` : "(無詳細明細)";
                 
+                // 處理原幣顯示
+                let foreignAmt = row.amountForeign ? row.amountForeign.toLocaleString() : "0";
+                let symbol = row.symbol || "(原幣)"; // 舊資料沒有 symbol，顯示文字
+
                 html += `
                     <div class="history-item">
                         <div>
@@ -388,7 +390,10 @@
                             <div class="history-info">${desc}</div>
                         </div>
                         <div style="display:flex; align-items:center;">
-                            <div class="history-amount">NT$ ${row.amountTWD}</div>
+                            <div class="history-amount-block">
+                                <div class="history-foreign">${symbol} ${foreignAmt}</div>
+                                <div class="history-twd">NT$ ${row.amountTWD}</div>
+                            </div>
                             <button class="btn-del-record" onclick="deleteHistoryItem(${originalIndex})">刪除</button>
                         </div>
                     </div>
@@ -406,7 +411,6 @@
             }
         }
 
-        // --- 原有功能 ---
         function clearData() {
             if(confirm("確定要刪除所有資料嗎？")) {
                 localStorage.removeItem('travelCandyData');
@@ -454,12 +458,18 @@
                 
                 let paymentDisplay = row.payment ? row.payment : "未記錄";
                 let zhType = typeMap[row.type] || row.type;
+                
+                // 報告中也顯示原幣
+                let foreignDisplay = row.amountForeign ? `${row.symbol||''} ${row.amountForeign}` : "0";
 
                 reportDiv.innerHTML += `
                     <div class="report-card">
-                        <div style="display:flex; justify-content:space-between; font-weight:bold; margin-bottom:10px;">
+                        <div style="display:flex; justify-content:space-between; font-weight:bold; margin-bottom:5px;">
                             <span>${zhType} / ${paymentDisplay}</span>
-                            <span style="color:#FF69B4;">NT$ ${row.amountTWD}</span>
+                            <div style="text-align:right;">
+                                <div style="font-size:0.8rem; color:#666;">(原幣 ${foreignDisplay})</div>
+                                <div style="color:#FF69B4;">NT$ ${row.amountTWD}</div>
+                            </div>
                         </div>
                         <div style="border-top:1px dashed #eee; padding-top:10px;">
                             ${itemsHtml}
@@ -598,6 +608,7 @@
             const mainCat = document.getElementById('mainCat').value;
             const date = document.getElementById('dateInput').value;
             const payment = document.getElementById('paymentMethod').value;
+            const symbol = countryConfig[currentCountry].symbol; // 存入當前符號
 
             ledger.push({ 
                 type: mainCat, 
@@ -606,6 +617,7 @@
                 rate: rate,
                 amountTWD: twd, 
                 date: date,
+                symbol: symbol, // 新增：存入符號
                 items: [...currentItems]
             });
             
