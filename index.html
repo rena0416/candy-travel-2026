@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>旅步甜心 v14.2 (版面修復版)</title>
+    <title>旅步甜心 v14.1 (舊資料救援版)</title>
     <style>
         :root {
             --bg-color: #FFF0F5;
@@ -113,38 +113,30 @@
             margin-bottom: 20px;
         }
 
-        /* --- 新的輸入區塊 CSS (上下兩層) --- */
         .add-group {
-            display: flex; 
-            flex-direction: column; /* 垂直排列 */
-            gap: 10px; 
-            margin-top: 10px;
-            background: rgba(255, 255, 255, 0.5); 
-            padding: 10px; 
-            border-radius: 10px;
+            display: flex; flex-direction: column; gap: 10px; margin-top: 10px;
+            background: rgba(255, 255, 255, 0.5); padding: 10px; border-radius: 10px;
         }
 
-        .input-row-top { width: 100%; }
-        .input-row-bottom { display: flex; gap: 10px; align-items: center; }
+        .input-line { display: flex; gap: 8px; width: 100%; }
 
         .styled-input {
-            width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ddd;
-            font-size: 0.9rem; outline-color: var(--deep-pink); box-sizing: border-box;
+            flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #ddd;
+            font-size: 0.9rem; outline-color: var(--deep-pink);
         }
 
         .btn-add {
             background: var(--deep-pink); color: white; border: none;
-            border-radius: 10px; width: 80px; height: 40px; 
-            cursor: pointer; font-weight: bold; font-size: 1rem;
-            flex-shrink: 0; /* 防止按鈕被擠壓 */
+            border-radius: 10px; width: 60px; height: 40px; 
+            cursor: pointer; font-weight: bold; flex-shrink: 0; font-size: 1rem;
         }
         
         .btn-delete {
-            background: #ffeff2; color: #ff6b81; border: 1px solid #ffb7c5;
-            font-size: 0.9rem; cursor: pointer; padding: 5px 10px; border-radius: 8px;
+            background: transparent; color: #ff6b81; border: none;
+            font-size: 1.2rem; cursor: pointer; padding: 0 10px;
         }
 
-        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee; }
         .item-info { display: flex; align-items: center; gap: 10px; font-weight: bold; color: #555; }
 
         .stats-panel { margin-top: 30px; background: #fff; border-top: 2px solid #eee; padding: 20px; }
@@ -229,16 +221,12 @@
                 <div style="display:flex; justify-content:space-between;">
                     <div style="font-size:0.9rem; font-weight:bold; color:var(--deep-pink);">📝 購物/明細清單</div>
                 </div>
-                
                 <ul id="itemList" style="padding:0; margin:5px 0; list-style:none;"></ul>
-                
                 <div class="add-group">
-                    <div class="input-row-top">
-                        <input type="text" id="itemName" placeholder="品名 (例如: 面膜)" class="styled-input">
-                    </div>
-                    <div class="input-row-bottom">
+                    <div class="input-line">
+                        <input type="text" id="itemName" placeholder="品名 (例如: 面膜)" class="styled-input" style="flex:2;">
                         <input type="number" id="itemPrice" placeholder="金額" class="styled-input" style="flex:1;">
-                        <button class="btn-add" onclick="addItem()">＋ 加入</button>
+                        <button class="btn-add" onclick="addItem()">＋</button>
                     </div>
                 </div>
             </div>
@@ -330,6 +318,7 @@
             }
         }
 
+        // --- 核心：渲染列表 (智能相容舊資料) ---
         function renderHistoryList() {
             const container = document.getElementById('historyContainer');
             if(ledger.length === 0) {
@@ -345,16 +334,19 @@
                 let originalIndex = ledger.indexOf(row);
                 let zhType = typeMap[row.type] || row.type;
                 
-                // 判斷是否為舊資料
+                // --- 智慧判斷：這是不是舊資料？ ---
+                // 舊資料沒有 amountForeign，或者它是 undefined
                 let isLegacy = (row.amountForeign === undefined || row.amountForeign === null);
                 
                 let detailText = "";
                 let foreignText = "";
 
                 if (isLegacy) {
+                    // 如果是舊資料
                     detailText = "(舊紀錄無細項)";
-                    foreignText = "(舊紀錄)";
+                    foreignText = "(舊紀錄無原幣)";
                 } else {
+                    // 如果是新資料
                     if (row.items && row.items.length > 0) {
                         detailText = row.items.map(i => `${i.name}`).join(", ");
                     } else {
@@ -410,6 +402,8 @@
             
             sortedLedger.forEach(row => {
                 let zhType = typeMap[row.type] || row.type;
+                
+                // 處理舊資料相容性
                 let isLegacy = (row.amountForeign === undefined);
                 let detailStr = "";
                 let foreign = 0;
@@ -466,7 +460,6 @@
             });
         }
 
-        // --- 核心：渲染列表 (版面優化) ---
         function renderItems() {
             const list = document.getElementById('itemList');
             list.innerHTML = ''; 
@@ -519,6 +512,8 @@
         function saveRecord() {
             const amountForeign = parseFloat(document.getElementById('amountInput').value) || 0;
             
+            // 這裡保留檢查：因為現在是「純文字版」，如果沒有輸入金額就存，會沒有意義
+            // 如果你要存 0 元，請把下面這行刪掉
             if(amountForeign === 0) return alert("金額是 0 耶？請輸入金額！");
 
             const rate = parseFloat(document.getElementById('exchangeRate').value);
@@ -538,7 +533,7 @@
                 amountTWD: twd, 
                 date: date,
                 symbol: symbol,
-                items: [...currentItems] 
+                items: [...currentItems]
             });
             
             saveToPhone();
