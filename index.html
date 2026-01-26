@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>旅步甜心 v11.0 (圖文報告版)</title>
+    <title>旅步甜心 v12.0 (帳本檢視版)</title>
     <style>
         :root {
             --bg-color: #FFF0F5;
@@ -33,7 +33,6 @@
             position: relative;
         }
 
-        /* 頂部 Header */
         .header {
             background-color: var(--primary-pink);
             padding: 15px 20px;
@@ -167,40 +166,51 @@
             color: #999; font-size: 0.8rem; cursor: pointer; text-decoration: underline; background: none; border: none;
         }
         
-        /* 按鈕群組 */
         .btn-group { display: flex; gap: 10px; margin-top: 20px; }
         
         .export-btn {
-            flex: 1;
-            text-align: center;
+            flex: 1; text-align: center;
             background-color: #2ecc71; color: white; padding: 10px; border-radius: 10px;
             font-size: 0.9rem; cursor: pointer; border: none; font-weight: bold;
         }
         .pdf-btn {
-            flex: 1;
-            text-align: center;
+            flex: 1; text-align: center;
             background-color: #3498db; color: white; padding: 10px; border-radius: 10px;
             font-size: 0.9rem; cursor: pointer; border: none; font-weight: bold;
         }
 
-        /* --- 列印專用樣式 (按下PDF按鈕後的樣子) --- */
-        @media print {
-            .app-container { box-shadow: none; max-width: 100%; width: 100%; }
-            .header, .shopping-box, .section-row, .save-btn, .btn-group, .reset-btn, .add-group, .btn-delete { display: none !important; }
-            
-            /* 只顯示報告區 */
-            #reportArea { display: block !important; padding: 20px; }
-            body { background: white; }
-            
-            .report-card {
-                border: 1px solid #eee; padding: 15px; margin-bottom: 20px; border-radius: 10px; page-break-inside: avoid;
-            }
-            .report-date { font-weight: bold; font-size: 1.2rem; color: var(--deep-pink); border-bottom: 2px solid var(--primary-pink); padding-bottom: 5px; margin-bottom: 10px; }
-            .report-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.9rem; }
-            .report-img { width: 60px; height: 60px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd; margin-right: 10px; }
+        /* --- 歷史帳本樣式 --- */
+        .history-btn {
+            display: block; width: 100%; text-align: center; margin-top: 20px;
+            background-color: #9b59b6; color: white; padding: 10px; border-radius: 10px;
+            font-size: 0.9rem; cursor: pointer; border: none; font-weight: bold;
+        }
+        #historyContainer {
+            display: none; margin-top: 15px; border: 1px solid #eee; border-radius: 10px; padding: 10px; background: #fffafc;
+        }
+        .history-item {
+            border-bottom: 1px solid #eee; padding: 10px 0; font-size: 0.9rem;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .history-info { color: #666; font-size: 0.8rem; margin-top: 3px;}
+        .history-amount { color: var(--deep-pink); font-weight: bold; }
+        .btn-del-record { 
+            background: #eee; border:none; color: #666; border-radius: 5px; 
+            padding: 3px 8px; font-size: 0.7rem; margin-left: 10px; cursor: pointer;
         }
 
-        #reportArea { display: none; } /* 平常隱藏報告區 */
+        @media print {
+            .app-container { box-shadow: none; max-width: 100%; width: 100%; }
+            .header, .shopping-box, .section-row, .save-btn, .btn-group, .reset-btn, .add-group, .btn-delete, .history-btn, #historyContainer { display: none !important; }
+            #reportArea { display: block !important; padding: 20px; }
+            body { background: white; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .report-card { border: 1px solid #eee; padding: 15px; margin-bottom: 20px; border-radius: 10px; page-break-inside: avoid; }
+            .report-date { font-weight: bold; font-size: 1.2rem; color: var(--deep-pink); border-bottom: 2px solid var(--primary-pink); padding-bottom: 5px; margin-bottom: 10px; }
+            .report-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.9rem; }
+            .report-img { width: 60px; height: 60px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd; margin-right: 10px; display: block !important; }
+        }
+
+        #reportArea { display: none; } 
 
     </style>
 </head>
@@ -241,9 +251,7 @@
                 <div style="display:flex; justify-content:space-between;">
                     <div style="font-size:0.9rem; font-weight:bold; color:var(--deep-pink);">📸 購物明細</div>
                 </div>
-                
                 <ul id="itemList" style="padding:0; margin:5px 0; list-style:none;"></ul>
-                
                 <div class="add-group">
                     <div class="input-line">
                         <label for="cameraInput" class="camera-label" id="cameraBtn">📷</label>
@@ -268,13 +276,11 @@
                     <span id="curSymbol" style="font-size:1.5rem; color:var(--deep-pink); margin-right:5px;">₩</span>
                     <input type="number" id="amountInput" class="currency-input" placeholder="0" oninput="manualAmountChange()">
                 </div>
-                
                 <div class="rate-section">
                     <span>➗ 匯率</span>
                     <input type="number" id="exchangeRate" class="rate-input" step="0.1" oninput="manualAmountChange()">
                     <span style="font-size:0.8rem; color:#999; margin-left:5px;">(1台幣換多少)</span>
                 </div>
-
                 <div style="font-size: 1rem; color: #5D4037; font-weight:bold;">
                     ≈ NT$ <span id="twdDisplay">0</span>
                 </div>
@@ -292,12 +298,16 @@
                     <button class="pdf-btn" onclick="printReport()">🖨️ 產出圖文 PDF</button>
                 </div>
                 
+                <button class="history-btn" onclick="toggleHistory()">📜 展開/隱藏 歷史帳本</button>
+                <div id="historyContainer">
+                    <div style="text-align:center; color:#999; padding:10px;">(載入中...)</div>
+                </div>
+
                 <button class="reset-btn" onclick="clearData()">🗑️ 刪除所有紀錄 (開始新旅程)</button>
             </div>
         </div>
         
         <button class="save-btn" onclick="saveRecord()">✨ 存入這筆花費</button>
-
         <div id="reportArea"></div>
     </div>
 
@@ -318,7 +328,7 @@
         let currentCountry = 'KR';
         let currentItems = []; 
         let ledger = []; 
-        let currentImgBase64 = null; // 改用 Base64 存圖片
+        let currentImgBase64 = null;
 
         window.onload = function() {
             document.getElementById('dateInput').valueAsDate = new Date();
@@ -328,53 +338,106 @@
             if (savedData) {
                 ledger = JSON.parse(savedData);
                 updateStats();
+                renderHistoryList(); // 載入時準備好列表
             }
         };
 
         function saveToPhone() {
             try {
                 localStorage.setItem('travelCandyData', JSON.stringify(ledger));
+                renderHistoryList(); // 儲存後更新列表
             } catch (e) {
                 alert("⚠️ 儲存空間已滿！請產出 PDF 備份後，清除舊資料。");
             }
         }
 
+        // --- 歷史列表功能 ---
+        function toggleHistory() {
+            const div = document.getElementById('historyContainer');
+            if(div.style.display === 'block') {
+                div.style.display = 'none';
+            } else {
+                div.style.display = 'block';
+                renderHistoryList();
+            }
+        }
+
+        function renderHistoryList() {
+            const container = document.getElementById('historyContainer');
+            if(ledger.length === 0) {
+                container.innerHTML = `<div style="text-align:center; color:#999; padding:10px;">目前沒有紀錄喔！</div>`;
+                return;
+            }
+            
+            const typeMap = { 'shopping': '購物', 'food': '美食', 'transport': '交通', 'stay': '住宿' };
+            let sortedLedger = [...ledger].sort((a, b) => new Date(b.date) - new Date(a.date)); // 倒序，新的在上面
+
+            let html = "";
+            sortedLedger.forEach((row, index) => {
+                // 找出原始 index 以便刪除
+                let originalIndex = ledger.indexOf(row);
+                let zhType = typeMap[row.type] || row.type;
+                
+                // 檢查是否為舊資料
+                let desc = row.items && row.items.length > 0 ? `(有 ${row.items.length} 樣明細)` : "(無詳細明細)";
+                
+                html += `
+                    <div class="history-item">
+                        <div>
+                            <div>${row.date} <span style="font-weight:bold; color:#5D4037;">${zhType}</span></div>
+                            <div class="history-info">${desc}</div>
+                        </div>
+                        <div style="display:flex; align-items:center;">
+                            <div class="history-amount">NT$ ${row.amountTWD}</div>
+                            <button class="btn-del-record" onclick="deleteHistoryItem(${originalIndex})">刪除</button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function deleteHistoryItem(index) {
+            if(confirm("確定要刪除這筆紀錄嗎？")) {
+                ledger.splice(index, 1);
+                saveToPhone();
+                updateStats();
+                renderHistoryList();
+            }
+        }
+
+        // --- 原有功能 ---
         function clearData() {
-            if(confirm("確定要刪除所有資料嗎？\n(建議先產出 PDF 或 Excel 備份！)")) {
+            if(confirm("確定要刪除所有資料嗎？")) {
                 localStorage.removeItem('travelCandyData');
                 ledger = [];
                 updateStats();
+                renderHistoryList();
                 alert("🗑️ 已清空！");
             }
         }
 
-        // --- 核心：產生圖文報告 ---
         function printReport() {
             if(ledger.length === 0) return alert("目前還沒有資料喔！");
-            
             const reportDiv = document.getElementById('reportArea');
             reportDiv.innerHTML = `<h2 style="color:#FF69B4; text-align:center;">🍓 旅步甜心 - 旅遊記帳單</h2>`;
             
-            // 排序
             let sortedLedger = [...ledger].sort((a, b) => new Date(a.date) - new Date(b.date));
             let currentDay = "";
-            
+            const typeMap = { 'shopping': '購物', 'food': '美食', 'transport': '交通', 'stay': '住宿' };
+
             sortedLedger.forEach(row => {
-                // 如果換了一天
                 if (row.date !== currentDay) {
                     currentDay = row.date;
                     reportDiv.innerHTML += `<div class="report-date">📅 ${currentDay}</div>`;
                 }
 
-                // 產生卡片
                 let itemsHtml = "";
-                // 如果這筆記錄有明細照片
                 if (row.items && row.items.length > 0) {
                     row.items.forEach(item => {
                         let imgTag = item.img 
                             ? `<img src="${item.img}" class="report-img">` 
                             : `<span style="display:inline-block;width:60px;text-align:center;color:#ccc;">(無圖)</span>`;
-                        
                         itemsHtml += `
                             <div class="report-item">
                                 <div style="display:flex; align-items:center;">
@@ -386,13 +449,16 @@
                         `;
                     });
                 } else {
-                    itemsHtml = `<div style="color:#999; font-style:italic;">(無詳細品項)</div>`;
+                    itemsHtml = `<div style="color:#999; font-style:italic; font-size:0.8rem;">(舊資料無細項)</div>`;
                 }
+                
+                let paymentDisplay = row.payment ? row.payment : "未記錄";
+                let zhType = typeMap[row.type] || row.type;
 
                 reportDiv.innerHTML += `
                     <div class="report-card">
                         <div style="display:flex; justify-content:space-between; font-weight:bold; margin-bottom:10px;">
-                            <span>${row.type} / ${row.payment}</span>
+                            <span>${zhType} / ${paymentDisplay}</span>
                             <span style="color:#FF69B4;">NT$ ${row.amountTWD}</span>
                         </div>
                         <div style="border-top:1px dashed #eee; padding-top:10px;">
@@ -401,8 +467,6 @@
                     </div>
                 `;
             });
-
-            // 觸發列印
             window.print();
         }
 
@@ -414,11 +478,8 @@
             
             sortedLedger.forEach(row => {
                 let zhType = typeMap[row.type] || row.type;
-                // 嘗試把細項串接起來
                 let detailStr = row.items ? row.items.map(i=>i.name).join(" / ") : "(無細項)";
-                // CSV 處理逗號
                 detailStr = detailStr.replace(/,/g, " ");
-                
                 csvContent += `${row.date},${zhType},${detailStr},${row.amountForeign || 0},${row.rate || 0},${row.amountTWD}\n`;
             });
             
@@ -432,14 +493,13 @@
             document.body.removeChild(link);
         }
 
-        // 圖片轉 Base64 以便儲存與列印
         function readImageBase64() {
             const file = document.getElementById('cameraInput').files[0];
             const btn = document.getElementById('cameraBtn');
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    currentImgBase64 = e.target.result; // 這是圖片的編碼
+                    currentImgBase64 = e.target.result;
                     btn.classList.add('has-file');
                     btn.innerHTML = '✅'; 
                 };
@@ -476,16 +536,13 @@
             const list = document.getElementById('itemList');
             list.innerHTML = ''; 
             let total = 0;
-            
             currentItems.forEach((item, index) => {
                 total += item.price;
                 const li = document.createElement('li');
                 li.className = 'item-row';
-                
                 let imgHtml = item.img 
                     ? `<img src="${item.img}" class="thumb-img">` 
                     : `<div class="thumb-img" style="display:flex;align-items:center;justify-content:center;font-size:0.8rem">無</div>`;
-
                 li.innerHTML = `
                     <div class="item-info">
                         ${imgHtml}
@@ -498,7 +555,6 @@
                 `;
                 list.appendChild(li);
             });
-
             document.getElementById('amountInput').value = total;
             manualAmountChange();
         }
@@ -507,17 +563,11 @@
             const name = document.getElementById('itemName').value;
             const priceInput = document.getElementById('itemPrice').value;
             const price = parseFloat(priceInput);
-            
             if(!name || priceInput === "") return alert("請輸入商品名稱");
-
             currentItems.push({
-                name: name, 
-                price: price,
-                img: currentImgBase64 // 存入 Base64
+                name: name, price: price, img: currentImgBase64
             });
-
             renderItems();
-
             document.getElementById('itemName').value = '';
             document.getElementById('itemPrice').value = '';
             document.getElementById('cameraInput').value = ''; 
@@ -549,7 +599,6 @@
             const date = document.getElementById('dateInput').value;
             const payment = document.getElementById('paymentMethod').value;
 
-            // 儲存完整資料結構 (含照片)
             ledger.push({ 
                 type: mainCat, 
                 payment: payment,
@@ -557,11 +606,10 @@
                 rate: rate,
                 amountTWD: twd, 
                 date: date,
-                items: [...currentItems] // 複製目前的購物籃 (含照片)
+                items: [...currentItems]
             });
             
             saveToPhone();
-
             currentItems = [];
             renderItems();
             document.getElementById('amountInput').value = '';
