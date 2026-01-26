@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>旅步甜心 v13.0 (雙幣顯示版)</title>
+    <title>旅步甜心 v14.1 (舊資料救援版)</title>
     <style>
         :root {
             --bg-color: #FFF0F5;
@@ -125,14 +125,6 @@
             font-size: 0.9rem; outline-color: var(--deep-pink);
         }
 
-        .camera-label {
-            background: white; border: 2px solid var(--deep-pink); color: var(--deep-pink);
-            border-radius: 10px; width: 45px; height: 40px; 
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.2rem; cursor: pointer; transition: 0.2s; flex-shrink: 0;
-        }
-        .camera-label.has-file { background: var(--deep-pink); color: white; }
-
         .btn-add {
             background: var(--deep-pink); color: white; border: none;
             border-radius: 10px; width: 60px; height: 40px; 
@@ -145,10 +137,7 @@
         }
 
         .item-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee; }
-        .item-info { display: flex; align-items: center; gap: 10px; }
-        .thumb-img {
-            width: 40px; height: 40px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd; background: #eee;
-        }
+        .item-info { display: flex; align-items: center; gap: 10px; font-weight: bold; color: #555; }
 
         .stats-panel { margin-top: 30px; background: #fff; border-top: 2px solid #eee; padding: 20px; }
         .stats-row { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 5px; color: #666; }
@@ -166,16 +155,9 @@
             color: #999; font-size: 0.8rem; cursor: pointer; text-decoration: underline; background: none; border: none;
         }
         
-        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
-        
         .export-btn {
-            flex: 1; text-align: center;
+            display: block; width: 100%; text-align: center; margin-top: 20px;
             background-color: #2ecc71; color: white; padding: 10px; border-radius: 10px;
-            font-size: 0.9rem; cursor: pointer; border: none; font-weight: bold;
-        }
-        .pdf-btn {
-            flex: 1; text-align: center;
-            background-color: #3498db; color: white; padding: 10px; border-radius: 10px;
             font-size: 0.9rem; cursor: pointer; border: none; font-weight: bold;
         }
 
@@ -191,27 +173,14 @@
             border-bottom: 1px solid #eee; padding: 10px 0; font-size: 0.9rem;
             display: flex; justify-content: space-between; align-items: center;
         }
-        .history-info { color: #666; font-size: 0.8rem; margin-top: 3px;}
+        .history-info { color: #555; font-size: 0.85rem; margin-top: 3px; font-weight: normal; background: #eee; padding: 2px 5px; border-radius: 4px; display: inline-block;}
         .history-amount-block { text-align: right; }
-        .history-foreign { color: #999; font-size: 0.8rem; }
+        .history-foreign { color: #888; font-size: 0.8rem; }
         .history-twd { color: var(--deep-pink); font-weight: bold; }
         .btn-del-record { 
             background: #eee; border:none; color: #666; border-radius: 5px; 
             padding: 3px 8px; font-size: 0.7rem; margin-left: 10px; cursor: pointer;
         }
-
-        @media print {
-            .app-container { box-shadow: none; max-width: 100%; width: 100%; }
-            .header, .shopping-box, .section-row, .save-btn, .btn-group, .reset-btn, .add-group, .btn-delete, .history-btn, #historyContainer { display: none !important; }
-            #reportArea { display: block !important; padding: 20px; }
-            body { background: white; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            .report-card { border: 1px solid #eee; padding: 15px; margin-bottom: 20px; border-radius: 10px; page-break-inside: avoid; }
-            .report-date { font-weight: bold; font-size: 1.2rem; color: var(--deep-pink); border-bottom: 2px solid var(--primary-pink); padding-bottom: 5px; margin-bottom: 10px; }
-            .report-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.9rem; }
-            .report-img { width: 60px; height: 60px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd; margin-right: 10px; display: block !important; }
-        }
-
-        #reportArea { display: none; } 
 
     </style>
 </head>
@@ -250,18 +219,14 @@
 
             <div class="shopping-box">
                 <div style="display:flex; justify-content:space-between;">
-                    <div style="font-size:0.9rem; font-weight:bold; color:var(--deep-pink);">📸 購物明細</div>
+                    <div style="font-size:0.9rem; font-weight:bold; color:var(--deep-pink);">📝 購物/明細清單</div>
                 </div>
                 <ul id="itemList" style="padding:0; margin:5px 0; list-style:none;"></ul>
                 <div class="add-group">
                     <div class="input-line">
-                        <label for="cameraInput" class="camera-label" id="cameraBtn">📷</label>
-                        <input type="file" id="cameraInput" accept="image/*" hidden onchange="readImageBase64()">
-                        <input type="text" id="itemName" placeholder="請輸入商品名稱..." class="styled-input">
-                    </div>
-                    <div class="input-line">
-                        <input type="number" id="itemPrice" placeholder="輸入金額" class="styled-input">
-                        <button class="btn-add" onclick="addItem()">＋加入</button>
+                        <input type="text" id="itemName" placeholder="品名 (例如: 面膜)" class="styled-input" style="flex:2;">
+                        <input type="number" id="itemPrice" placeholder="金額" class="styled-input" style="flex:1;">
+                        <button class="btn-add" onclick="addItem()">＋</button>
                     </div>
                 </div>
             </div>
@@ -294,22 +259,18 @@
                     <div class="stats-total stats-row"><span>🔥 旅程總花費</span><span>NT$ 0</span></div>
                 </div>
                 
-                <div class="btn-group">
-                    <button class="export-btn" onclick="exportData()">📥 下載 Excel</button>
-                    <button class="pdf-btn" onclick="printReport()">🖨️ 產出圖文 PDF</button>
-                </div>
-                
+                <button class="export-btn" onclick="exportData()">📥 下載 Excel 報表</button>
                 <button class="history-btn" onclick="toggleHistory()">📜 展開/隱藏 歷史帳本</button>
+                
                 <div id="historyContainer">
                     <div style="text-align:center; color:#999; padding:10px;">(載入中...)</div>
                 </div>
 
-                <button class="reset-btn" onclick="clearData()">🗑️ 刪除所有紀錄 (開始新旅程)</button>
+                <button class="reset-btn" onclick="clearData()">🗑️ 刪除所有紀錄 (全新旅程才按)</button>
             </div>
         </div>
         
         <button class="save-btn" onclick="saveRecord()">✨ 存入這筆花費</button>
-        <div id="reportArea"></div>
     </div>
 
     <script>
@@ -329,7 +290,6 @@
         let currentCountry = 'KR';
         let currentItems = []; 
         let ledger = []; 
-        let currentImgBase64 = null;
 
         window.onload = function() {
             document.getElementById('dateInput').valueAsDate = new Date();
@@ -344,12 +304,8 @@
         };
 
         function saveToPhone() {
-            try {
-                localStorage.setItem('travelCandyData', JSON.stringify(ledger));
-                renderHistoryList(); 
-            } catch (e) {
-                alert("⚠️ 儲存空間已滿！請產出 PDF 備份後，清除舊資料。");
-            }
+            localStorage.setItem('travelCandyData', JSON.stringify(ledger));
+            renderHistoryList(); 
         }
 
         function toggleHistory() {
@@ -362,7 +318,7 @@
             }
         }
 
-        // --- 核心更新：歷史列表顯示原幣 ---
+        // --- 核心：渲染列表 (智能相容舊資料) ---
         function renderHistoryList() {
             const container = document.getElementById('historyContainer');
             if(ledger.length === 0) {
@@ -377,21 +333,38 @@
             sortedLedger.forEach((row, index) => {
                 let originalIndex = ledger.indexOf(row);
                 let zhType = typeMap[row.type] || row.type;
-                let desc = row.items && row.items.length > 0 ? `(有 ${row.items.length} 樣明細)` : "(無詳細明細)";
                 
-                // 處理原幣顯示
-                let foreignAmt = row.amountForeign ? row.amountForeign.toLocaleString() : "0";
-                let symbol = row.symbol || "(原幣)"; // 舊資料沒有 symbol，顯示文字
+                // --- 智慧判斷：這是不是舊資料？ ---
+                // 舊資料沒有 amountForeign，或者它是 undefined
+                let isLegacy = (row.amountForeign === undefined || row.amountForeign === null);
+                
+                let detailText = "";
+                let foreignText = "";
+
+                if (isLegacy) {
+                    // 如果是舊資料
+                    detailText = "(舊紀錄無細項)";
+                    foreignText = "(舊紀錄無原幣)";
+                } else {
+                    // 如果是新資料
+                    if (row.items && row.items.length > 0) {
+                        detailText = row.items.map(i => `${i.name}`).join(", ");
+                    } else {
+                        detailText = "單筆金額";
+                    }
+                    let symbol = row.symbol || countryConfig[currentCountry].symbol;
+                    foreignText = `${symbol} ${row.amountForeign}`;
+                }
 
                 html += `
                     <div class="history-item">
-                        <div>
+                        <div style="flex:1; margin-right:10px;">
                             <div>${row.date} <span style="font-weight:bold; color:#5D4037;">${zhType}</span></div>
-                            <div class="history-info">${desc}</div>
+                            <div class="history-info">${detailText}</div>
                         </div>
                         <div style="display:flex; align-items:center;">
                             <div class="history-amount-block">
-                                <div class="history-foreign">${symbol} ${foreignAmt}</div>
+                                <div class="history-foreign">${foreignText}</div>
                                 <div class="history-twd">NT$ ${row.amountTWD}</div>
                             </div>
                             <button class="btn-del-record" onclick="deleteHistoryItem(${originalIndex})">刪除</button>
@@ -412,72 +385,13 @@
         }
 
         function clearData() {
-            if(confirm("確定要刪除所有資料嗎？")) {
+            if(confirm("【警告】這會刪除你手機裡存的所有記帳資料！\n\n除非你想要「從零開始」新旅程，否則請按「取消」！")) {
                 localStorage.removeItem('travelCandyData');
                 ledger = [];
                 updateStats();
                 renderHistoryList();
                 alert("🗑️ 已清空！");
             }
-        }
-
-        function printReport() {
-            if(ledger.length === 0) return alert("目前還沒有資料喔！");
-            const reportDiv = document.getElementById('reportArea');
-            reportDiv.innerHTML = `<h2 style="color:#FF69B4; text-align:center;">🍓 旅步甜心 - 旅遊記帳單</h2>`;
-            
-            let sortedLedger = [...ledger].sort((a, b) => new Date(a.date) - new Date(b.date));
-            let currentDay = "";
-            const typeMap = { 'shopping': '購物', 'food': '美食', 'transport': '交通', 'stay': '住宿' };
-
-            sortedLedger.forEach(row => {
-                if (row.date !== currentDay) {
-                    currentDay = row.date;
-                    reportDiv.innerHTML += `<div class="report-date">📅 ${currentDay}</div>`;
-                }
-
-                let itemsHtml = "";
-                if (row.items && row.items.length > 0) {
-                    row.items.forEach(item => {
-                        let imgTag = item.img 
-                            ? `<img src="${item.img}" class="report-img">` 
-                            : `<span style="display:inline-block;width:60px;text-align:center;color:#ccc;">(無圖)</span>`;
-                        itemsHtml += `
-                            <div class="report-item">
-                                <div style="display:flex; align-items:center;">
-                                    ${imgTag}
-                                    <span>${item.name}</span>
-                                </div>
-                                <span>${item.price}</span>
-                            </div>
-                        `;
-                    });
-                } else {
-                    itemsHtml = `<div style="color:#999; font-style:italic; font-size:0.8rem;">(舊資料無細項)</div>`;
-                }
-                
-                let paymentDisplay = row.payment ? row.payment : "未記錄";
-                let zhType = typeMap[row.type] || row.type;
-                
-                // 報告中也顯示原幣
-                let foreignDisplay = row.amountForeign ? `${row.symbol||''} ${row.amountForeign}` : "0";
-
-                reportDiv.innerHTML += `
-                    <div class="report-card">
-                        <div style="display:flex; justify-content:space-between; font-weight:bold; margin-bottom:5px;">
-                            <span>${zhType} / ${paymentDisplay}</span>
-                            <div style="text-align:right;">
-                                <div style="font-size:0.8rem; color:#666;">(原幣 ${foreignDisplay})</div>
-                                <div style="color:#FF69B4;">NT$ ${row.amountTWD}</div>
-                            </div>
-                        </div>
-                        <div style="border-top:1px dashed #eee; padding-top:10px;">
-                            ${itemsHtml}
-                        </div>
-                    </div>
-                `;
-            });
-            window.print();
         }
 
         function exportData() {
@@ -488,9 +402,27 @@
             
             sortedLedger.forEach(row => {
                 let zhType = typeMap[row.type] || row.type;
-                let detailStr = row.items ? row.items.map(i=>i.name).join(" / ") : "(無細項)";
-                detailStr = detailStr.replace(/,/g, " ");
-                csvContent += `${row.date},${zhType},${detailStr},${row.amountForeign || 0},${row.rate || 0},${row.amountTWD}\n`;
+                
+                // 處理舊資料相容性
+                let isLegacy = (row.amountForeign === undefined);
+                let detailStr = "";
+                let foreign = 0;
+
+                if(isLegacy) {
+                    detailStr = "(舊資料)";
+                    foreign = "(未存)";
+                } else {
+                    if (row.items && row.items.length > 0) {
+                        detailStr = row.items.map(i => `${i.name}(${i.price})`).join(" / ");
+                    } else {
+                        detailStr = "(無細項)";
+                    }
+                    foreign = row.amountForeign;
+                }
+                
+                detailStr = detailStr.replace(/,/g, " "); 
+                
+                csvContent += `${row.date},${zhType},${detailStr},${foreign},${row.rate || 0},${row.amountTWD}\n`;
             });
             
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -501,20 +433,6 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-        }
-
-        function readImageBase64() {
-            const file = document.getElementById('cameraInput').files[0];
-            const btn = document.getElementById('cameraBtn');
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    currentImgBase64 = e.target.result;
-                    btn.classList.add('has-file');
-                    btn.innerHTML = '✅'; 
-                };
-                reader.readAsDataURL(file);
-            }
         }
 
         function changeCountry() {
@@ -550,12 +468,8 @@
                 total += item.price;
                 const li = document.createElement('li');
                 li.className = 'item-row';
-                let imgHtml = item.img 
-                    ? `<img src="${item.img}" class="thumb-img">` 
-                    : `<div class="thumb-img" style="display:flex;align-items:center;justify-content:center;font-size:0.8rem">無</div>`;
                 li.innerHTML = `
                     <div class="item-info">
-                        ${imgHtml}
                         <span>${item.name}</span>
                     </div>
                     <div style="display:flex; align-items:center;">
@@ -573,17 +487,13 @@
             const name = document.getElementById('itemName').value;
             const priceInput = document.getElementById('itemPrice').value;
             const price = parseFloat(priceInput);
-            if(!name || priceInput === "") return alert("請輸入商品名稱");
-            currentItems.push({
-                name: name, price: price, img: currentImgBase64
-            });
+            if(!name || priceInput === "") return alert("請輸入品名和金額");
+            
+            currentItems.push({ name: name, price: price });
             renderItems();
+            
             document.getElementById('itemName').value = '';
             document.getElementById('itemPrice').value = '';
-            document.getElementById('cameraInput').value = ''; 
-            document.getElementById('cameraBtn').classList.remove('has-file');
-            document.getElementById('cameraBtn').innerHTML = '📷';
-            currentImgBase64 = null;
         }
 
         function deleteItem(index) {
@@ -600,24 +510,29 @@
         }
 
         function saveRecord() {
-            const amount = parseFloat(document.getElementById('amountInput').value) || 0;
+            const amountForeign = parseFloat(document.getElementById('amountInput').value) || 0;
+            
+            // 這裡保留檢查：因為現在是「純文字版」，如果沒有輸入金額就存，會沒有意義
+            // 如果你要存 0 元，請把下面這行刪掉
+            if(amountForeign === 0) return alert("金額是 0 耶？請輸入金額！");
+
             const rate = parseFloat(document.getElementById('exchangeRate').value);
             let twd = 0;
-            if (rate && rate !== 0) twd = Math.round(amount / rate);
+            if (rate && rate !== 0) twd = Math.round(amountForeign / rate);
             
             const mainCat = document.getElementById('mainCat').value;
             const date = document.getElementById('dateInput').value;
             const payment = document.getElementById('paymentMethod').value;
-            const symbol = countryConfig[currentCountry].symbol; // 存入當前符號
+            const symbol = countryConfig[currentCountry].symbol;
 
             ledger.push({ 
                 type: mainCat, 
                 payment: payment,
-                amountForeign: amount,
+                amountForeign: amountForeign, 
                 rate: rate,
                 amountTWD: twd, 
                 date: date,
-                symbol: symbol, // 新增：存入符號
+                symbol: symbol,
                 items: [...currentItems]
             });
             
