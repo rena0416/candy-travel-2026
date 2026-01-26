@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>旅步甜心 v9.1 (客製化分類版)</title>
+    <title>旅步甜心 v10.0 (自由編輯版)</title>
     <style>
         :root {
             --bg-color: #FFF0F5;
@@ -138,6 +138,12 @@
             border-radius: 10px; width: 60px; height: 40px; 
             cursor: pointer; font-weight: bold; flex-shrink: 0; font-size: 1rem;
         }
+        
+        /* 刪除按鈕樣式 */
+        .btn-delete {
+            background: transparent; color: #ff6b81; border: none;
+            font-size: 1.2rem; cursor: pointer; padding: 0 10px;
+        }
 
         .item-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee; }
         .item-info { display: flex; align-items: center; gap: 10px; }
@@ -269,7 +275,6 @@
 
         const categories = {
             'shopping': ['Olive Young', '藥局', '大創 (Daiso)', '超市/便利店', '服飾/鞋包', '免稅店', '其他購物'],
-            // 修改重點：這裡把 '酒吧' 改成了 '傳統市場'
             'food': ['餐廳', '路邊攤', '咖啡廳', '傳統市場'],
             'transport': ['計程車', '公車', '捷運/地鐵', '機場巴士', '包車'],
             'stay': ['飯店', '民宿', '其他']
@@ -381,41 +386,73 @@
             }
         }
 
+        // --- 核心更新：清單渲染與刪除功能 ---
+        function renderItems() {
+            const list = document.getElementById('itemList');
+            list.innerHTML = ''; // 先清空列表
+            
+            let total = 0;
+            
+            currentItems.forEach((item, index) => {
+                total += item.price;
+                
+                const li = document.createElement('li');
+                li.className = 'item-row';
+                
+                let imgHtml = item.imgUrl 
+                    ? `<img src="${item.imgUrl}" class="thumb-img">` 
+                    : `<div class="thumb-img" style="display:flex;align-items:center;justify-content:center;font-size:0.8rem">無</div>`;
+
+                li.innerHTML = `
+                    <div class="item-info">
+                        ${imgHtml}
+                        <span>${item.name}</span>
+                    </div>
+                    <div style="display:flex; align-items:center;">
+                        <span style="margin-right:10px;">${countryConfig[currentCountry].symbol}${item.price}</span>
+                        <button class="btn-delete" onclick="deleteItem(${index})">❌</button>
+                    </div>
+                `;
+                list.appendChild(li);
+            });
+
+            // 更新總金額
+            document.getElementById('amountInput').value = total;
+            manualAmountChange();
+        }
+
         function addItem() {
             const name = document.getElementById('itemName').value;
-            const price = parseFloat(document.getElementById('itemPrice').value);
-            if(!name || !price) return alert("請輸入名稱與金額");
+            // 修正：允許金額為 0，只要輸入框不是空的
+            const priceInput = document.getElementById('itemPrice').value;
+            const price = parseFloat(priceInput);
+            
+            if(!name || priceInput === "") {
+                return alert("請輸入商品名稱 (金額可為 0)");
+            }
 
-            currentItems.push({name, price});
+            currentItems.push({
+                name: name, 
+                price: price,
+                imgUrl: currentImgUrl
+            });
 
-            const li = document.createElement('li');
-            li.className = 'item-row';
-            let imgHtml = currentImgUrl 
-                ? `<img src="${currentImgUrl}" class="thumb-img">` 
-                : `<div class="thumb-img" style="display:flex;align-items:center;justify-content:center;font-size:0.8rem">無</div>`;
+            // 重新渲染列表
+            renderItems();
 
-            li.innerHTML = `
-                <div class="item-info">
-                    ${imgHtml}
-                    <span>${name}</span>
-                </div>
-                <span>${countryConfig[currentCountry].symbol}${price}</span>
-            `;
-            document.getElementById('itemList').appendChild(li);
-
+            // 清空輸入
             document.getElementById('itemName').value = '';
             document.getElementById('itemPrice').value = '';
             document.getElementById('cameraInput').value = ''; 
             document.getElementById('cameraBtn').classList.remove('has-file');
             document.getElementById('cameraBtn').innerHTML = '📷';
             currentImgUrl = null;
+        }
 
-            const currentTotalInput = parseFloat(document.getElementById('amountInput').value) || 0;
-            const newListTotal = currentItems.reduce((acc, item) => acc + item.price, 0);
-            if(newListTotal > 0) {
-                 document.getElementById('amountInput').value = newListTotal;
-                 manualAmountChange(); 
-            }
+        // 刪除功能
+        function deleteItem(index) {
+            currentItems.splice(index, 1); // 刪除該筆資料
+            renderItems(); // 重新渲染
         }
 
         function manualAmountChange() {
@@ -432,7 +469,9 @@
 
         function saveRecord() {
             const amount = parseFloat(document.getElementById('amountInput').value) || 0;
-            if(amount === 0) return alert("還沒輸入金額喔！");
+            
+            // 允許總金額為 0 (如果只是單純想記錄照片)
+            // if(amount === 0) return alert("還沒輸入金額喔！");
 
             const rate = parseFloat(document.getElementById('exchangeRate').value);
             let twd = 0;
@@ -447,7 +486,7 @@
             saveToPhone();
 
             currentItems = [];
-            document.getElementById('itemList').innerHTML = '';
+            renderItems(); // 清空列表顯示
             document.getElementById('amountInput').value = '';
             document.getElementById('twdDisplay').innerText = '0';
             alert("✅ 記帳成功！(已儲存)");
